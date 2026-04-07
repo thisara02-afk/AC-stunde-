@@ -38,14 +38,24 @@
         .btn-pdf { background: var(--brand-blue); color: white; }
         .btn-sec { background: #6c757d; color: white; font-size: 12px; }
 
+        /* ඔයා ඉල්ලපු විදිහට නම පොඩි කරලා PDF එකෙන් අයින් කරන කොටස */
+        .dev-note-app { font-size: 10px; color: #aaa; text-align: center; margin-top: 15px; font-style: italic; }
+        
+        .no-print { display: block; }
+
         @media screen and (max-width: 850px) {
             #printable-area { transform: scale(0.38); transform-origin: top center; margin-bottom: -180mm; }
+        }
+
+        /* PDF එක ප්‍රින්ට් කරන කොට මේවා පේන්නේ නැහැ */
+        @media print {
+            .no-print { display: none !important; }
         }
     </style>
 </head>
 <body>
 
-<div class="input-panel">
+<div class="input-panel no-print">
     <h3 style="margin-top:0; color:var(--brand-green);">AC ELEKTRO - Professional Timesheet v5.0</h3>
     <div class="input-grid">
         <div><label>Monat / Jahr</label><input type="month" id="month-in" onchange="render()"></div>
@@ -72,6 +82,8 @@
         <input type="file" id="importFile" style="display:none" onchange="importData(event)">
         <button style="background:#dc3545; color:white;" onclick="if(confirm('Alle Daten löschen?')) {localStorage.clear(); location.reload();}">🗑️ Reset</button>
     </div>
+
+    <div class="dev-note-app">Entwickelt von Thisara Jayalakshana</div>
 </div>
 
 <div id="printable-area">
@@ -116,15 +128,12 @@
             <div class="sig-box">Unterschrift Mitarbeiter</div>
         </div>
     </div>
-
-    <div class="dev-note">Entwickelt von <b>Thisara Jayalakshana</b> | AC Elektro System</div>
 </div>
 
 <script>
     let db = JSON.parse(localStorage.getItem('ac_v5_data')) || {};
     const monthInput = document.getElementById('month-in');
 
-    // Default current month
     const now = new Date();
     monthInput.value = now.getFullYear() + "-" + (now.getMonth()+1).toString().padStart(2, '0');
 
@@ -194,7 +203,7 @@
             if(diff > 9) p = 0.75; else if(diff > 6) p = 0.50;
             hrs = (diff - p).toFixed(2);
         } else if (t !== 'Work') {
-            hrs = 8.00; // Standard hours for leave
+            hrs = 8.00;
         }
 
         db[m + "-" + d] = { s: st, e: et, p: p, h: hrs, c: document.getElementById('city-in').value, t: t };
@@ -225,7 +234,8 @@
 
     function generatePDF() {
         const el = document.getElementById('printable-area');
-        html2pdf().set({ margin: 5, filename: 'Stundennachweis_Official.pdf', html2canvas: { scale: 3 }, jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' } }).from(el).save();
+        // PDF ජෙනරේට් කරන කොට .no-print ක්ලාස් එක තියෙන දේවල් ඉබේම අයින් වෙනවා
+        html2pdf().set({ margin: 5, filename: 'Stundennachweis_AC_Elektro.pdf', html2canvas: { scale: 3 }, jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' } }).from(el).save();
     }
 
     window.onload = render;
