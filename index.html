@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>AC ELEKTRO - Zeiterfassung v17.0</title>
+    <title>AC ELEKTRO - Zeiterfassung v18.0</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/signature_pad@4.0.0/dist/signature_pad.umd.min.js"></script>
     
@@ -11,7 +11,7 @@
         :root { --brand-green: #4db34d; --brand-blue: #0d6efd; }
         body { font-family: Arial, sans-serif; background: #f0f2f5; margin: 0; padding: 10px; display: flex; flex-direction: column; align-items: center; }
         
-        /* UI Form Styling */
+        /* input Form Styling */
         .card { width: 100%; max-width: 500px; background: white; padding: 15px; border-radius: 12px; box-shadow: 0 4px 10px rgba(0,0,0,0.1); margin-bottom: 15px; box-sizing: border-box; }
         .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
         label { font-size: 10px; font-weight: bold; color: #555; text-transform: uppercase; display: block; margin-bottom: 2px; }
@@ -27,23 +27,24 @@
         .btn-pdf { background: var(--brand-blue); }
         .btn-clear { background: #eee; color: #333; font-size: 10px; padding: 5px 10px; border-radius: 4px; border: 1px solid #ccc; margin-top: 2px; cursor: pointer; }
 
-        /* --- Live Preview for Phone Screen --- */
-        .preview-label { align-self: flex-start; max-width: 500px; width: 100%; font-weight: bold; font-size: 12px; margin-bottom: 5px; color: #333; }
-        .live-preview { width: 100%; max-width: 500px; background: white; border-radius: 10px; overflow-x: auto; padding: 10px; box-shadow: 0 2px 5px rgba(0,0,0,0.05); box-sizing: border-box; margin-bottom: 20px; }
-        .ui-table { width: 100%; border-collapse: collapse; font-size: 12px; }
-        .ui-table th, .ui-table td { border: 1px solid #eee; padding: 6px; text-align: center; }
-        .ui-table th { background: #fafafa; color: #666; }
+        /* --- Full Table View for Screen --- */
+        .full-view-container { width: 100%; max-width: 600px; background: white; padding: 10px; border-radius: 10px; overflow-x: auto; box-shadow: 0 2px 5px rgba(0,0,0,0.05); margin-bottom: 30px; }
+        .full-table { width: 100%; border-collapse: collapse; font-size: 11px; min-width: 450px; }
+        .full-table th, .full-table td { border: 1px solid #ddd; padding: 5px; text-align: center; }
+        .full-table th { background: #f8f9fa; position: sticky; top: 0; }
+        .full-table tr:nth-child(even) { background: #fafafa; }
+        .summary-display { margin-top: 10px; font-size: 13px; font-weight: bold; border-top: 2px solid #eee; padding-top: 10px; }
 
         /* --- PDF Secret Template (Hidden) --- */
         #pdf-wrapper { position: absolute; left: -9999px; top: 0; }
         #pdf-content { width: 210mm; height: 297mm; padding: 10mm; background: white; color: black; box-sizing: border-box; display: flex; flex-direction: column; }
         .pdf-header { display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid #000; padding-bottom: 5px; margin-bottom: 10px; }
         .pdf-table { width: 100%; border-collapse: collapse; table-layout: fixed; }
-        .pdf-table th, .pdf-table td { border: 1px solid #000; padding: 2px; text-align: center; font-size: 10px; height: 15px; }
+        .pdf-table th, .pdf-table td { border: 1px solid #000; padding: 2px; text-align: center; font-size: 10px; height: 16px; }
         .pdf-table th { background: #f2f2f2; }
-        .summary-box { margin-top: 15px; display: flex; justify-content: space-between; align-items: flex-start; }
-        .sum-lines div { border-bottom: 1px solid #000; padding: 4px 0; display: flex; justify-content: space-between; width: 240px; font-size: 12px; }
-        .sig-line { border-top: 1px solid #000; width: 220px; margin-top: 50px; text-align: center; font-size: 11px; padding-top: 5px; }
+        .pdf-summary { margin-top: 15px; display: flex; justify-content: space-between; }
+        .pdf-sum-lines div { border-bottom: 1px solid #000; padding: 4px 0; display: flex; justify-content: space-between; width: 240px; font-size: 12px; }
+        .pdf-sig-line { border-top: 1px solid #000; width: 220px; margin-top: 50px; text-align: center; font-size: 11px; padding-top: 5px; }
     </style>
 </head>
 <body>
@@ -79,14 +80,17 @@
     </div>
 </div>
 
-<div class="preview-label">Vorschau (Live Table):</div>
-<div class="live-preview">
-    <table class="ui-table">
+<div style="width:100%; max-width:500px; font-weight:bold; margin-bottom:5px;">Vollständige Tabelle (1-31):</div>
+<div class="full-view-container">
+    <table class="full-table">
         <thead>
-            <tr><th>Tag</th><th>Start</th><th>Ende</th><th>Std.</th><th>Ort</th></tr>
+            <tr><th>Tag</th><th>Start</th><th>Ende</th><th>Pause</th><th>Std.</th><th>Einsatzort</th></tr>
         </thead>
         <tbody id="ui-table-body"></tbody>
     </table>
+    <div class="summary-display">
+        Gesamtstunden: <span id="ui-total-hrs" style="color:var(--brand-blue);">0.00</span> h
+    </div>
 </div>
 
 <div id="pdf-wrapper">
@@ -104,8 +108,8 @@
             </thead>
             <tbody id="pdf-table-body"></tbody>
         </table>
-        <div class="summary-box">
-            <div class="sum-lines">
+        <div class="pdf-summary">
+            <div class="pdf-sum-lines">
                 <div>Arbeitsstunden <span id="sum-work">0.00</span></div>
                 <div>Urlaub -Stunden- <span id="sum-urlaub">0.00</span></div>
                 <div>Feiertag -Stunden- <span id="sum-feier">0.00</span></div>
@@ -114,14 +118,14 @@
             </div>
             <div style="display:flex; flex-direction:column; align-items:center;">
                 <img id="pdf-sig-img" style="max-height:80px; width:180px; display:none;">
-                <div class="sig-line">Unterschrift Mitarbeiter</div>
+                <div class="pdf-sig-line">Unterschrift Mitarbeiter</div>
             </div>
         </div>
     </div>
 </div>
 
 <script>
-    let db = JSON.parse(localStorage.getItem('ac_v17_db')) || {};
+    let db = JSON.parse(localStorage.getItem('ac_v18_db')) || {};
     const canvas = document.getElementById("canvas");
     const pad = new SignaturePad(canvas, { onBegin: () => document.getElementById('sig-label').style.display='none' });
 
@@ -148,18 +152,21 @@
         for(let i=1; i<=31; i++) {
             const r = db[`${m}-${i}`] || {s:'', e:'', p:0, m:0, c:'', t:'work'};
             const hrs = r.m > 0 ? (r.m/60).toFixed(2) : '';
+            const pauseVal = r.p > 0 ? '0.50' : '';
             
-            // For UI
-            if(r.m > 0) {
-                uiBody.innerHTML += `<tr><td>${i}</td><td>${r.s}</td><td>${r.e}</td><td>${hrs}</td><td>${r.c}</td></tr>`;
-            }
+            // UI Table (Shows all 31 rows)
+            uiBody.innerHTML += `<tr>
+                <td>${i}</td><td>${r.s}</td><td>${r.e}</td><td>${pauseVal}</td>
+                <td style="font-weight:bold">${hrs}</td><td>${r.c}</td>
+            </tr>`;
             
-            // For PDF
-            pdfBody.innerHTML += `<tr><td>${i}</td><td>${r.s}</td><td>${r.e}</td><td>${r.p > 0 ? '0.50' : ''}</td><td><b>${hrs}</b></td><td style="text-align:left; padding-left:5px;">${r.c}</td></tr>`;
+            // PDF Table
+            pdfBody.innerHTML += `<tr><td>${i}</td><td>${r.s}</td><td>${r.e}</td><td>${pauseVal}</td><td><b>${hrs}</b></td><td style="text-align:left; padding-left:5px;">${r.c}</td></tr>`;
             if(r.m > 0) s[r.t] += r.m;
         }
         
         const total = (s.work+s.urlaub+s.feier+s.krank)/60;
+        document.getElementById('ui-total-hrs').innerText = total.toFixed(2);
         document.getElementById('sum-work').innerText = (s.work/60).toFixed(2);
         document.getElementById('sum-urlaub').innerText = (s.urlaub/60).toFixed(2);
         document.getElementById('sum-feier').innerText = (s.feier/60).toFixed(2);
@@ -175,28 +182,18 @@
         let diff = (parseInt(eP[0])*60 + parseInt(eP[1])) - (parseInt(sP[0])*60 + parseInt(sP[1]));
         let p = (diff > 360 && type === 'work') ? 30 : 0;
         db[`${m}-${d}`] = { s, e, p, m: diff - p, c: document.getElementById('city').value, t: type };
-        localStorage.setItem('ac_v17_db', JSON.stringify(db));
+        localStorage.setItem('ac_v18_db', JSON.stringify(db));
         updateView();
-        alert("Gespeichert!");
+        alert("Eintrag für Tag " + d + " gespeichert!");
     }
 
     function generate() {
         if(pad.isEmpty()) return alert("Bitte erst unterschreiben!");
         const sigImg = document.getElementById('pdf-sig-img');
         sigImg.src = pad.toDataURL(); sigImg.style.display = 'block';
-        
         const element = document.getElementById('pdf-content');
-        const opt = {
-            margin: 0,
-            filename: `Stundennachweis_${document.getElementById('month').value}.pdf`,
-            image: { type: 'jpeg', quality: 1 },
-            html2canvas: { scale: 2 },
-            jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
-        };
-
-        html2pdf().from(element).set(opt).save().then(() => {
-            sigImg.style.display = 'none';
-        });
+        const opt = { margin: 0, filename: `Stundennachweis_${document.getElementById('month').value}.pdf`, image: { type: 'jpeg', quality: 1 }, html2canvas: { scale: 2 }, jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' } };
+        html2pdf().from(element).set(opt).save().then(() => { sigImg.style.display = 'none'; });
     }
 </script>
 </body>
