@@ -3,108 +3,118 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>AC Elektro - Stundennachweis v11.0</title>
+    <title>AC Elektro - Zeiterfassung v13.0</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/signature_pad@4.0.0/dist/signature_pad.umd.min.js"></script>
     
     <style>
         :root { --brand-green: #4db34d; --brand-blue: #0d6efd; --bg-color: #f4f7f6; }
-        body { font-family: -apple-system, system-ui, sans-serif; background: var(--bg-color); margin: 0; padding: 10px; display: flex; flex-direction: column; align-items: center; }
+        body { font-family: Arial, sans-serif; background: var(--bg-color); margin: 0; padding: 10px; display: flex; flex-direction: column; align-items: center; }
         
-        /* Form Card */
-        .card { width: 100%; max-width: 600px; background: white; padding: 20px; border-radius: 15px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); box-sizing: border-box; margin-bottom: 20px; }
-        .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 15px; }
-        label { font-size: 11px; font-weight: bold; color: #555; display: block; margin-bottom: 4px; text-transform: uppercase; }
-        input { padding: 12px; border: 1px solid #ccc; border-radius: 8px; width: 100%; box-sizing: border-box; font-size: 16px; background: #fff; }
+        .card { width: 100%; max-width: 600px; background: white; padding: 20px; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); box-sizing: border-box; margin-bottom: 20px; }
+        .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 10px; }
+        label { font-size: 11px; font-weight: bold; color: #333; display: block; margin-bottom: 3px; }
+        input, select { padding: 10px; border: 1px solid #ccc; border-radius: 6px; width: 100%; box-sizing: border-box; font-size: 14px; }
 
-        /* Signature Pad */
-        .sig-container { margin: 10px 0; background: #fff; border: 2px dashed #ccc; border-radius: 10px; width: 100%; height: 150px; position: relative; touch-action: none; }
-        .sig-placeholder { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); color: #ccc; pointer-events: none; font-size: 13px; }
-        canvas { width: 100%; height: 100%; border-radius: 10px; touch-action: none; }
+        .sig-container { margin: 10px 0; background: #fff; border: 1px dashed #999; border-radius: 8px; width: 100%; height: 140px; position: relative; touch-action: none; }
+        .sig-placeholder { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); color: #ccc; pointer-events: none; font-size: 12px; }
+        canvas { width: 100%; height: 100%; touch-action: none; }
         
-        /* Buttons */
-        .btn-group { display: flex; gap: 10px; margin-top: 15px; }
-        button { flex: 1; padding: 15px; border: none; border-radius: 10px; cursor: pointer; font-weight: bold; font-size: 15px; color: white; }
+        .btn-group { display: flex; gap: 8px; margin-top: 15px; }
+        button { flex: 1; padding: 12px; border: none; border-radius: 8px; cursor: pointer; font-weight: bold; font-size: 14px; color: white; }
         .btn-save { background: var(--brand-green); }
         .btn-pdf { background: var(--brand-blue); }
-        .btn-clear { background: #f0f0f0; color: #333; font-size: 11px; width: 80px; padding: 6px; border: 1px solid #ccc; border-radius: 5px; margin-top: 5px; }
+        .btn-clear { background: #eee; color: #333; font-size: 10px; width: 70px; padding: 5px; border: 1px solid #ccc; margin-top: 2px; }
 
-        /* Live Preview Table (විස්තර පෙන්වන කොටස) */
-        .preview-box { width: 100%; max-width: 800px; background: white; padding: 15px; border-radius: 10px; box-shadow: 0 2px 10px rgba(0,0,0,0.05); overflow-x: auto; }
-        h3 { border-bottom: 2px solid #333; padding-bottom: 10px; margin-top: 0; }
+        /* PDF & Preview Table Styling */
+        #pdf-content { padding: 20px; background: white; color: black; width: 210mm; min-height: 297mm; box-sizing: border-box; margin: 0 auto; display: block; }
+        .form-header { border-bottom: 2px solid #000; padding-bottom: 5px; margin-bottom: 10px; }
+        .info-section { margin-bottom: 10px; font-size: 12px; line-height: 1.6; }
         
-        table { width: 100%; border-collapse: collapse; margin-top: 10px; min-width: 500px; }
-        th, td { border: 1px solid #000; padding: 8px; text-align: center; font-size: 12px; }
-        th { background: #eee; }
+        table { width: 100%; border-collapse: collapse; table-layout: fixed; }
+        th, td { border: 1px solid #000; padding: 4px; text-align: center; font-size: 10px; height: 22px; }
+        th { background: #f2f2f2; }
         
-        .total-row { margin-top: 15px; font-weight: bold; font-size: 14px; text-align: right; }
-        .dev-tag { font-size: 9px; color: #bbb; text-align: center; margin-top: 20px; font-style: italic; border-top: 1px solid #eee; padding-top: 10px; width: 100%; }
-
-        /* PDF Only Adjustments */
-        #pdf-content { display: block; }
+        .summary-section { margin-top: 15px; display: flex; justify-content: space-between; font-size: 11px; }
+        .summary-left div { margin-bottom: 5px; border-bottom: 1px solid #000; width: 250px; display: flex; justify-content: space-between; }
+        .sig-area { text-align: center; border-top: 1px solid #000; width: 200px; margin-top: 40px; font-size: 10px; }
+        
+        .preview-box { width: 100%; max-width: 900px; background: white; padding: 10px; overflow-x: auto; border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.05); }
     </style>
 </head>
 <body>
 
 <div class="card">
-    <h2 style="color:var(--brand-green); text-align:center; margin:0 0 15px 0;">AC ELEKTRO</h2>
-    
+    <h3 style="text-align:center; margin:0 0 15px 0;">AC ELEKTRO Zeiterfassung</h3>
     <div class="grid">
-        <div style="grid-column: span 2;"><label>Name, Vorname</label><input type="text" id="name" placeholder="Mitarbeiter Name"></div>
+        <div style="grid-column: span 2;"><label>Name, Vorname</label><input type="text" id="name" placeholder="Eingeben..." oninput="renderTable()"></div>
         <div><label>Monat / Jahr</label><input type="month" id="month" onchange="renderTable()"></div>
-        <div><label>Tag</label><input type="number" id="day" min="1" max="31"></div>
+        <div><label>Tag (1-31)</label><input type="number" id="day" min="1" max="31"></div>
         <div><label>Beginn</label><input type="time" id="start" value="07:00"></div>
         <div><label>Ende</label><input type="time" id="end" value="16:00"></div>
-        <div style="grid-column: span 2;"><label>Einsatzort</label><input type="text" id="city" placeholder="Ort / Baustelle"></div>
+        <div><label>Typ</label>
+            <select id="type">
+                <option value="work">Arbeit</option>
+                <option value="urlaub">Urlaub</option>
+                <option value="feiertag">Feiertag</option>
+                <option value="krank">Krank</option>
+            </select>
+        </div>
+        <div><label>Einsatzort</label><input type="text" id="city" placeholder="Baustelle"></div>
     </div>
-
-    <label>Unterschrift:</label>
     <div class="sig-container">
-        <div class="sig-placeholder" id="sig-label">Hier unterschreiben</div>
+        <div class="sig-placeholder" id="sig-label">Unterschrift Mitarbeiter</div>
         <canvas id="canvas"></canvas>
     </div>
     <button class="btn-clear" onclick="pad.clear(); document.getElementById('sig-label').style.display='block';">Löschen</button>
-
     <div class="btn-group">
         <button class="btn-save" onclick="save()">Hinzufügen</button>
         <button class="btn-pdf" onclick="generate()">PDF Erstellen</button>
     </div>
-    <div class="dev-tag">Entwickelt von Thisara Jayalakshana</div>
 </div>
 
 <div class="preview-box">
     <div id="pdf-content">
-        <div style="display:flex; justify-content:space-between; align-items:center;">
-            <h3>Stundennachweis</h3>
-            <span style="color:var(--brand-green); font-weight:bold;">AC ELEKTRO</span>
+        <div class="form-header">
+            <h2 style="margin:0; font-size: 18px;">Zeiterfassung / Stundennachweis</h2>
         </div>
-        <p style="font-size:13px; margin: 5px 0;">Name: <b id="out-name"></b> | Monat: <b id="out-month"></b></p>
-        
+        <div class="info-section">
+            Name, Vorname : <b id="out-name"></b><br>
+            Monat / Jahr : <b id="out-month"></b>
+        </div>
         <table>
             <thead>
                 <tr>
-                    <th>Datum</th>
-                    <th>Beginn</th>
-                    <th>Ende</th>
-                    <th>Pause</th>
-                    <th>Stunden</th>
-                    <th>Ort</th>
+                    <th style="width:30px">Tag</th>
+                    <th style="width:60px">Beginn</th>
+                    <th style="width:60px">Ende</th>
+                    <th style="width:50px">Pausen</th>
+                    <th style="width:60px">Arbeitsstunden</th>
+                    <th>Einsatzort</th>
                 </tr>
             </thead>
             <tbody id="table-body"></tbody>
         </table>
-        
-        <div class="total-row">Gesamtstunden: <span id="total-hrs">0:00</span></div>
-        
-        <div id="sig-display" style="margin-top:20px; display:none;">
-            <img id="pdf-sig" style="max-height:60px; border-bottom: 1px solid #000;">
-            <div style="font-size:10px;">Unterschrift Mitarbeiter</div>
+
+        <div class="summary-section">
+            <div class="summary-left">
+                <div>Arbeitsstunden <span id="sum-work">0.00</span></div>
+                <div>Urlaub -Stunden- <span id="sum-urlaub">0.00</span></div>
+                <div>Feiertag -Stunden- <span id="sum-feier">0.00</span></div>
+                <div>Krank -Stunden- <span id="sum-krank">0.00</span></div>
+                <div style="border-bottom: 2px solid #000; font-weight:bold; margin-top:10px;">Stunden insgesamt <span id="sum-total">0.00</span></div>
+                <p style="font-size:9px; margin-top:10px;">Nach 6h Arbeitszeit mind. 1/2h Pause</p>
+            </div>
+            <div style="display:flex; flex-direction:column; align-items:center;">
+                <img id="pdf-sig" style="max-height:60px; width:150px; display:none;">
+                <div class="sig-area">Unterschrift Mitarbeiter</div>
+            </div>
         </div>
     </div>
 </div>
 
 <script>
-    let data = JSON.parse(localStorage.getItem('ac_data_v11')) || {};
+    let data = JSON.parse(localStorage.getItem('ac_data_v13')) || {};
     const canvas = document.getElementById("canvas");
     const pad = new SignaturePad(canvas, { onBegin: () => document.getElementById('sig-label').style.display='none' });
 
@@ -120,58 +130,71 @@
 
     function renderTable() {
         const m = document.getElementById('month').value;
-        const name = document.getElementById('name').value;
-        document.getElementById('out-month').innerText = m || "-";
-        document.getElementById('out-name').innerText = name || "-";
+        document.getElementById('out-month').innerText = m || "";
+        document.getElementById('out-name').innerText = document.getElementById('name').value || "";
         
         const body = document.getElementById('table-body');
         body.innerHTML = "";
-        let total = 0;
+        let sums = { work:0, urlaub:0, feier:0, krank:0 };
 
         if(m) {
             const [y, mon] = m.split("-");
-            const days = new Date(y, mon, 0).getDate();
-            for(let i=1; i<=days; i++) {
-                const key = `${m}-${i}`;
-                const r = data[key] || {s:'', e:'', p:0, m:0, c:''};
-                const timeStr = r.m > 0 ? `${Math.floor(r.m/60)}:${(r.m%60).toString().padStart(2,'0')}` : '';
+            for(let i=1; i<=31; i++) {
+                const r = data[`${m}-${i}`] || {s:'', e:'', p:0, m:0, c:'', t:'work'};
+                const timeStr = r.m > 0 ? (r.m/60).toFixed(2) : '';
+                
                 body.innerHTML += `<tr>
-                    <td>${i.toString().padStart(2,'0')}.${mon}.${y}</td>
-                    <td>${r.s}</td><td>${r.e}</td>
-                    <td>${r.p > 0 ? r.p+'m' : ''}</td>
+                    <td>${i}</td><td>${r.s}</td><td>${r.e}</td>
+                    <td>${r.p > 0 ? '0.50' : ''}</td>
                     <td><b>${timeStr}</b></td><td>${r.c}</td>
                 </tr>`;
-                total += r.m;
+                
+                if(r.m > 0) {
+                    if(r.t === 'work') sums.work += r.m;
+                    else if(r.t === 'urlaub') sums.urlaub += r.m;
+                    else if(r.t === 'feiertag') sums.feier += r.m;
+                    else if(r.t === 'krank') sums.krank += r.m;
+                }
             }
         }
-        document.getElementById('total-hrs').innerText = `${Math.floor(total/60)}:${(total%60).toString().padStart(2,'0')}`;
+        document.getElementById('sum-work').innerText = (sums.work/60).toFixed(2);
+        document.getElementById('sum-urlaub').innerText = (sums.urlaub/60).toFixed(2);
+        document.getElementById('sum-feier').innerText = (sums.feier/60).toFixed(2);
+        document.getElementById('sum-krank').innerText = (sums.krank/60).toFixed(2);
+        document.getElementById('sum-total').innerText = ((sums.work+sums.urlaub+sums.feier+sums.krank)/60).toFixed(2);
     }
 
     function save() {
         const m = document.getElementById('month').value, d = document.getElementById('day').value;
-        if(!m || !d) return alert("Fehler: Monat/Tag fehlt!");
+        if(!m || !d) return alert("Monat und Tag eingeben!");
         
         const s = document.getElementById('start').value, e = document.getElementById('end').value;
+        const type = document.getElementById('type').value;
         const sP = s.split(':'), eP = e.split(':');
         let diff = (parseInt(eP[0])*60 + parseInt(eP[1])) - (parseInt(sP[0])*60 + parseInt(sP[1]));
-        let p = diff > 360 ? 30 : 0;
-        
-        data[`${m}-${d}`] = { s, e, p, m: diff - p, c: document.getElementById('city').value };
-        localStorage.setItem('ac_data_v11', JSON.stringify(data));
+        let p = (diff > 360 && type === 'work') ? 30 : 0;
+
+        data[`${m}-${d}`] = { s, e, p, m: diff - p, c: document.getElementById('city').value, t: type };
+        localStorage.setItem('ac_data_v13', JSON.stringify(data));
         renderTable();
-        alert("Eintrag hinzugefügt!");
+        alert("Gespeichert!");
     }
 
     function generate() {
-        if(pad.isEmpty()) return alert("Bitte erst unterschreiben!");
-        const outSig = document.getElementById('pdf-sig');
-        const sigBox = document.getElementById('sig-display');
-        outSig.src = pad.toDataURL();
-        sigBox.style.display = 'block';
+        if(pad.isEmpty()) return alert("Bitte unterschreiben!");
+        const sigImg = document.getElementById('pdf-sig');
+        sigImg.src = pad.toDataURL();
+        sigImg.style.display = 'block';
 
-        const el = document.getElementById('pdf-content');
-        html2pdf().from(el).set({ margin: 10, filename: 'Stundennachweis.pdf', html2canvas: { scale: 2 } }).save().then(() => {
-            sigBox.style.display = 'none';
+        const opt = {
+            margin: 5,
+            filename: 'Stundennachweis.pdf',
+            image: { type: 'jpeg', quality: 0.98 },
+            html2canvas: { scale: 3 },
+            jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
+        };
+        html2pdf().from(document.getElementById('pdf-content')).set(opt).save().then(() => {
+            sigImg.style.display = 'none';
         });
     }
 </script>
