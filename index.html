@@ -3,53 +3,57 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>AC Elektro - Zeiterfassung v13.0</title>
+    <title>AC ELEKTRO - Zeiterfassung v14.0</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/signature_pad@4.0.0/dist/signature_pad.umd.min.js"></script>
     
     <style>
-        :root { --brand-green: #4db34d; --brand-blue: #0d6efd; --bg-color: #f4f7f6; }
-        body { font-family: Arial, sans-serif; background: var(--bg-color); margin: 0; padding: 10px; display: flex; flex-direction: column; align-items: center; }
+        :root { --brand-green: #4db34d; --brand-blue: #0d6efd; }
+        body { font-family: 'Helvetica', Arial, sans-serif; background: #f4f7f6; margin: 0; padding: 10px; display: flex; flex-direction: column; align-items: center; }
         
-        .card { width: 100%; max-width: 600px; background: white; padding: 20px; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); box-sizing: border-box; margin-bottom: 20px; }
-        .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 10px; }
-        label { font-size: 11px; font-weight: bold; color: #333; display: block; margin-bottom: 3px; }
-        input, select { padding: 10px; border: 1px solid #ccc; border-radius: 6px; width: 100%; box-sizing: border-box; font-size: 14px; }
+        .card { width: 100%; max-width: 500px; background: white; padding: 15px; border-radius: 12px; box-shadow: 0 4px 10px rgba(0,0,0,0.1); margin-bottom: 20px; }
+        .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+        label { font-size: 10px; font-weight: bold; color: #555; text-transform: uppercase; }
+        input, select { padding: 8px; border: 1px solid #ccc; border-radius: 6px; width: 100%; font-size: 14px; margin-bottom: 5px; }
 
-        .sig-container { margin: 10px 0; background: #fff; border: 1px dashed #999; border-radius: 8px; width: 100%; height: 140px; position: relative; touch-action: none; }
-        .sig-placeholder { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); color: #ccc; pointer-events: none; font-size: 12px; }
+        .sig-container { margin: 10px 0; background: #fff; border: 1px dashed #aaa; border-radius: 8px; width: 100%; height: 120px; position: relative; touch-action: none; }
+        .sig-placeholder { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); color: #ccc; font-size: 12px; pointer-events: none; }
         canvas { width: 100%; height: 100%; touch-action: none; }
         
-        .btn-group { display: flex; gap: 8px; margin-top: 15px; }
-        button { flex: 1; padding: 12px; border: none; border-radius: 8px; cursor: pointer; font-weight: bold; font-size: 14px; color: white; }
+        .btn-group { display: flex; gap: 8px; margin-top: 10px; }
+        button { flex: 1; padding: 12px; border: none; border-radius: 8px; cursor: pointer; font-weight: bold; color: white; }
         .btn-save { background: var(--brand-green); }
         .btn-pdf { background: var(--brand-blue); }
-        .btn-clear { background: #eee; color: #333; font-size: 10px; width: 70px; padding: 5px; border: 1px solid #ccc; margin-top: 2px; }
+        .btn-clear { background: #eee; color: #333; font-size: 10px; padding: 4px 8px; border-radius: 4px; border: 1px solid #ccc; margin-top: 2px; }
 
-        /* PDF & Preview Table Styling */
-        #pdf-content { padding: 20px; background: white; color: black; width: 210mm; min-height: 297mm; box-sizing: border-box; margin: 0 auto; display: block; }
-        .form-header { border-bottom: 2px solid #000; padding-bottom: 5px; margin-bottom: 10px; }
-        .info-section { margin-bottom: 10px; font-size: 12px; line-height: 1.6; }
+        /* PDF Area - Optimized for A4 Single Page */
+        #pdf-content { 
+            background: white; color: black; padding: 10mm; 
+            width: 210mm; min-height: 290mm; 
+            margin: 0 auto; box-sizing: border-box; font-size: 12px;
+        }
+        .pdf-title-row { display: flex; justify-content: space-between; align-items: flex-start; border-bottom: 2px solid #000; padding-bottom: 5px; }
+        .pdf-company { color: var(--brand-green); font-size: 24px; font-weight: bold; }
         
-        table { width: 100%; border-collapse: collapse; table-layout: fixed; }
-        th, td { border: 1px solid #000; padding: 4px; text-align: center; font-size: 10px; height: 22px; }
+        table { width: 100%; border-collapse: collapse; margin-top: 10px; table-layout: fixed; }
+        th, td { border: 1px solid #000; padding: 3px; text-align: center; font-size: 11px; height: 18px; }
         th { background: #f2f2f2; }
         
-        .summary-section { margin-top: 15px; display: flex; justify-content: space-between; font-size: 11px; }
-        .summary-left div { margin-bottom: 5px; border-bottom: 1px solid #000; width: 250px; display: flex; justify-content: space-between; }
-        .sig-area { text-align: center; border-top: 1px solid #000; width: 200px; margin-top: 40px; font-size: 10px; }
-        
-        .preview-box { width: 100%; max-width: 900px; background: white; padding: 10px; overflow-x: auto; border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.05); }
+        .footer-grid { margin-top: 15px; display: grid; grid-template-columns: 1fr 1fr; gap: 40px; }
+        .sum-table div { border-bottom: 1px solid #000; padding: 3px 0; display: flex; justify-content: space-between; width: 220px; font-size: 12px; }
+        .sig-box { border-top: 1px solid #000; width: 220px; margin-top: 50px; text-align: center; font-size: 11px; }
+
+        .preview-box { width: 100%; max-width: 900px; background: white; padding: 10px; overflow-x: auto; border-radius: 8px; }
     </style>
 </head>
 <body>
 
 <div class="card">
-    <h3 style="text-align:center; margin:0 0 15px 0;">AC ELEKTRO Zeiterfassung</h3>
+    <h2 style="text-align:center; color:var(--brand-green); margin:0 0 10px 0;">AC ELEKTRO</h2>
     <div class="grid">
-        <div style="grid-column: span 2;"><label>Name, Vorname</label><input type="text" id="name" placeholder="Eingeben..." oninput="renderTable()"></div>
-        <div><label>Monat / Jahr</label><input type="month" id="month" onchange="renderTable()"></div>
-        <div><label>Tag (1-31)</label><input type="number" id="day" min="1" max="31"></div>
+        <div style="grid-column: span 2;"><label>Name, Vorname</label><input type="text" id="name" oninput="renderTable()"></div>
+        <div><label>Monat</label><input type="month" id="month" onchange="renderTable()"></div>
+        <div><label>Tag</label><input type="number" id="day" min="1" max="31"></div>
         <div><label>Beginn</label><input type="time" id="start" value="07:00"></div>
         <div><label>Ende</label><input type="time" id="end" value="16:00"></div>
         <div><label>Typ</label>
@@ -60,101 +64,90 @@
                 <option value="krank">Krank</option>
             </select>
         </div>
-        <div><label>Einsatzort</label><input type="text" id="city" placeholder="Baustelle"></div>
+        <div><label>Ort</label><input type="text" id="city"></div>
     </div>
     <div class="sig-container">
-        <div class="sig-placeholder" id="sig-label">Unterschrift Mitarbeiter</div>
+        <div class="sig-placeholder" id="sig-label">Unterschrift hier</div>
         <canvas id="canvas"></canvas>
     </div>
     <button class="btn-clear" onclick="pad.clear(); document.getElementById('sig-label').style.display='block';">Löschen</button>
     <div class="btn-group">
-        <button class="btn-save" onclick="save()">Hinzufügen</button>
-        <button class="btn-pdf" onclick="generate()">PDF Erstellen</button>
+        <button class="btn-save" onclick="save()">Speichern</button>
+        <button class="btn-pdf" onclick="generate()">PDF Download</button>
     </div>
 </div>
 
 <div class="preview-box">
     <div id="pdf-content">
-        <div class="form-header">
-            <h2 style="margin:0; font-size: 18px;">Zeiterfassung / Stundennachweis</h2>
+        <div class="pdf-title-row">
+            <div>
+                <h1 style="margin:0; font-size: 20px;">Zeiterfassung / Stundennachweis</h1>
+                <p style="margin:5px 0;">Name: <b id="out-name"></b> | Monat: <b id="out-month"></b></p>
+            </div>
+            <div class="pdf-company">AC ELEKTRO</div>
         </div>
-        <div class="info-section">
-            Name, Vorname : <b id="out-name"></b><br>
-            Monat / Jahr : <b id="out-month"></b>
-        </div>
+
         <table>
             <thead>
                 <tr>
                     <th style="width:30px">Tag</th>
                     <th style="width:60px">Beginn</th>
                     <th style="width:60px">Ende</th>
-                    <th style="width:50px">Pausen</th>
-                    <th style="width:60px">Arbeitsstunden</th>
-                    <th>Einsatzort</th>
+                    <th style="width:50px">Pause</th>
+                    <th style="width:65px">Std.</th>
+                    <th>Einsatzort / Baustelle</th>
                 </tr>
             </thead>
             <tbody id="table-body"></tbody>
         </table>
 
-        <div class="summary-section">
-            <div class="summary-left">
+        <div class="footer-grid">
+            <div class="sum-table">
                 <div>Arbeitsstunden <span id="sum-work">0.00</span></div>
                 <div>Urlaub -Stunden- <span id="sum-urlaub">0.00</span></div>
                 <div>Feiertag -Stunden- <span id="sum-feier">0.00</span></div>
                 <div>Krank -Stunden- <span id="sum-krank">0.00</span></div>
-                <div style="border-bottom: 2px solid #000; font-weight:bold; margin-top:10px;">Stunden insgesamt <span id="sum-total">0.00</span></div>
-                <p style="font-size:9px; margin-top:10px;">Nach 6h Arbeitszeit mind. 1/2h Pause</p>
+                <div style="font-weight:bold; border-bottom: 2px solid #000; margin-top:5px;">Stunden insgesamt <span id="sum-total">0.00</span></div>
+                <p style="font-size:9px; color:#555; margin-top:10px;">*Nach 6h Arbeitszeit mind. 1/2h Pause</p>
             </div>
             <div style="display:flex; flex-direction:column; align-items:center;">
                 <img id="pdf-sig" style="max-height:60px; width:150px; display:none;">
-                <div class="sig-area">Unterschrift Mitarbeiter</div>
+                <div class="sig-box">Unterschrift Mitarbeiter</div>
             </div>
         </div>
     </div>
 </div>
 
 <script>
-    let data = JSON.parse(localStorage.getItem('ac_data_v13')) || {};
+    let data = JSON.parse(localStorage.getItem('ac_v14_db')) || {};
     const canvas = document.getElementById("canvas");
     const pad = new SignaturePad(canvas, { onBegin: () => document.getElementById('sig-label').style.display='none' });
 
     function resize() {
         const r = Math.max(window.devicePixelRatio || 1, 1);
-        canvas.width = canvas.offsetWidth * r;
-        canvas.height = canvas.offsetHeight * r;
+        canvas.width = canvas.offsetWidth * r; canvas.height = canvas.offsetHeight * r;
         canvas.getContext("2d").scale(r, r);
         pad.clear();
     }
-    window.onresize = resize;
-    window.onload = () => { resize(); renderTable(); };
+    window.onresize = resize; window.onload = () => { resize(); renderTable(); };
 
     function renderTable() {
         const m = document.getElementById('month').value;
         document.getElementById('out-month').innerText = m || "";
         document.getElementById('out-name').innerText = document.getElementById('name').value || "";
-        
         const body = document.getElementById('table-body');
         body.innerHTML = "";
         let sums = { work:0, urlaub:0, feier:0, krank:0 };
 
-        if(m) {
-            const [y, mon] = m.split("-");
-            for(let i=1; i<=31; i++) {
-                const r = data[`${m}-${i}`] || {s:'', e:'', p:0, m:0, c:'', t:'work'};
-                const timeStr = r.m > 0 ? (r.m/60).toFixed(2) : '';
-                
-                body.innerHTML += `<tr>
-                    <td>${i}</td><td>${r.s}</td><td>${r.e}</td>
-                    <td>${r.p > 0 ? '0.50' : ''}</td>
-                    <td><b>${timeStr}</b></td><td>${r.c}</td>
-                </tr>`;
-                
-                if(r.m > 0) {
-                    if(r.t === 'work') sums.work += r.m;
-                    else if(r.t === 'urlaub') sums.urlaub += r.m;
-                    else if(r.t === 'feiertag') sums.feier += r.m;
-                    else if(r.t === 'krank') sums.krank += r.m;
-                }
+        for(let i=1; i<=31; i++) {
+            const r = data[`${m}-${i}`] || {s:'', e:'', p:0, m:0, c:'', t:'work'};
+            const timeStr = r.m > 0 ? (r.m/60).toFixed(2) : '';
+            body.innerHTML += `<tr><td>${i}</td><td>${r.s}</td><td>${r.e}</td><td>${r.p > 0 ? '0.50' : ''}</td><td><b>${timeStr}</b></td><td style="text-align:left;">${r.c}</td></tr>`;
+            if(r.m > 0) {
+                if(r.t === 'work') sums.work += r.m;
+                else if(r.t === 'urlaub') sums.urlaub += r.m;
+                else if(r.t === 'feiertag') sums.feier += r.m;
+                else if(r.t === 'krank') sums.krank += r.m;
             }
         }
         document.getElementById('sum-work').innerText = (sums.work/60).toFixed(2);
@@ -166,36 +159,23 @@
 
     function save() {
         const m = document.getElementById('month').value, d = document.getElementById('day').value;
-        if(!m || !d) return alert("Monat und Tag eingeben!");
-        
+        if(!m || !d) return alert("Tag & Monat wählen!");
         const s = document.getElementById('start').value, e = document.getElementById('end').value;
         const type = document.getElementById('type').value;
         const sP = s.split(':'), eP = e.split(':');
         let diff = (parseInt(eP[0])*60 + parseInt(eP[1])) - (parseInt(sP[0])*60 + parseInt(sP[1]));
         let p = (diff > 360 && type === 'work') ? 30 : 0;
-
         data[`${m}-${d}`] = { s, e, p, m: diff - p, c: document.getElementById('city').value, t: type };
-        localStorage.setItem('ac_data_v13', JSON.stringify(data));
+        localStorage.setItem('ac_v14_db', JSON.stringify(data));
         renderTable();
-        alert("Gespeichert!");
     }
 
     function generate() {
         if(pad.isEmpty()) return alert("Bitte unterschreiben!");
         const sigImg = document.getElementById('pdf-sig');
-        sigImg.src = pad.toDataURL();
-        sigImg.style.display = 'block';
-
-        const opt = {
-            margin: 5,
-            filename: 'Stundennachweis.pdf',
-            image: { type: 'jpeg', quality: 0.98 },
-            html2canvas: { scale: 3 },
-            jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
-        };
-        html2pdf().from(document.getElementById('pdf-content')).set(opt).save().then(() => {
-            sigImg.style.display = 'none';
-        });
+        sigImg.src = pad.toDataURL(); sigImg.style.display = 'block';
+        const opt = { margin: 0, filename: 'Stundennachweis.pdf', image: { type: 'jpeg', quality: 0.98 }, html2canvas: { scale: 2 }, jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' } };
+        html2pdf().from(document.getElementById('pdf-content')).set(opt).save().then(()=> sigImg.style.display='none');
     }
 </script>
 </body>
