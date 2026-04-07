@@ -1,0 +1,176 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AC Elektro - Stundennachweis v6.2</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+    <style>
+        :root {
+            --brand-green: #4db34d;
+            --brand-blue: #0d6efd;
+            --bg-color: #f8f9fa;
+            --card-bg: #ffffff;
+        }
+
+        body { font-family: 'Segoe UI', Arial, sans-serif; background: var(--bg-color); margin: 0; padding: 10px; display: flex; flex-direction: column; align-items: center; }
+
+        /* Input Area styles */
+        .input-panel { width: 95%; max-width: 950px; background: var(--card-bg); padding: 15px; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); margin-bottom: 20px; }
+        .input-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 12px; margin-bottom: 15px; }
+        label { font-size: 11px; font-weight: bold; display: block; margin-bottom: 4px; color: #555; }
+        input, select { padding: 10px; border: 1px solid #ccc; border-radius: 6px; width: 100%; box-sizing: border-box; font-size: 14px; }
+
+        .btn-group { display: flex; gap: 10px; flex-wrap: wrap; justify-content: center; margin-bottom: 10px; }
+        button { border: none; padding: 12px 20px; border-radius: 8px; cursor: pointer; font-weight: bold; color: white; display: flex; align-items: center; gap: 8px; transition: 0.3s; }
+        .btn-add { background: #5cb85c; }
+        .btn-pdf { background: var(--brand-blue); }
+        .btn-reset { background: #d9534f; }
+
+        /* Credits Style - ඇප් එකේ විතරක් පේන පොඩි අකුරු */
+        .credits { font-size: 10px; color: #888; text-align: center; margin-top: 5px; font-style: italic; }
+
+        /* PDF Area styles */
+        #printable-area { width: 210mm; background: white; padding: 15mm; color: black; min-height: 297mm; }
+        .header-section { border-bottom: 2px solid black; padding-bottom: 10px; margin-bottom: 15px; display: flex; justify-content: space-between; align-items: flex-end; }
+        .header-title { font-size: 22px; font-weight: bold; text-decoration: underline; margin: 0; }
+        .brand-name { color: var(--brand-green); font-weight: bold; font-size: 18px; }
+
+        .name-row { margin-bottom: 15px; font-size: 14px; }
+        
+        table { width: 100%; border-collapse: collapse; margin-top: 5px; table-layout: fixed; }
+        th, td { border: 1px solid black; padding: 6px; text-align: center; font-size: 11px; word-wrap: break-word; }
+        th { background: #f2f2f2; font-weight: bold; }
+
+        .summary-box { margin-top: 15px; display: grid; grid-template-columns: 1fr 1fr; font-size: 13px; gap: 10px; }
+        
+        /* Hide from PDF */
+        .no-print { display: block; }
+        @media print { .no-print { display: none !important; } }
+    </style>
+</head>
+<body>
+
+    <div class="input-panel no-print">
+        <div class="input-grid">
+            <div><label>Name, Vorname</label><input type="text" id="workerName" placeholder="Ihre Name" oninput="updateName()"></div>
+            <div><label>Datum</label><input type="date" id="date"></div>
+            <div><label>Beginn</label><input type="time" id="start" value="07:00"></div>
+            <div><label>Ende</label><input type="time" id="end" value="16:00"></div>
+            <div><label>Pause (Min.)</label><input type="number" id="pause" value="30"></div>
+            <div><label>Einsatzort</label><input type="text" id="location" placeholder="Einsatzort"></div>
+        </div>
+        <div class="btn-group">
+            <button class="btn-add" onclick="addRow()">➕ Hinzufügen</button>
+            <button class="btn-pdf" onclick="generatePDF()">📄 PDF Herunterladen</button>
+            <button class="btn-reset" onclick="resetForm()">🗑️ Reset</button>
+        </div>
+        <div class="credits">Entwickelt von Thisara</div>
+    </div>
+
+    <div id="printable-area">
+        <div class="header-section">
+            <div>
+                <h1 class="header-title">Zeiterfassung / Stundennachweis</h1>
+            </div>
+            <div style="text-align: right;">
+                <div class="brand-name">AC ELEKTRO</div>
+                <div id="monthDisplay" style="font-size: 12px; font-weight: bold;"></div>
+            </div>
+        </div>
+
+        <div class="name-row">
+            Name, Vorname: <span id="pdfWorkerName" style="border-bottom: 1px solid black; min-width: 250px; display: inline-block;">__________________________</span>
+        </div>
+
+        <table id="timesheetTable">
+            <thead>
+                <tr>
+                    <th style="width: 15%;">Datum / Tag</th>
+                    <th style="width: 10%;">Beginn</th>
+                    <th style="width: 10%;">Ende</th>
+                    <th style="width: 10%;">Pausen</th>
+                    <th style="width: 12%;">Arbeitsstunden</th>
+                    <th>Einsatzort</th>
+                </tr>
+            </thead>
+            <tbody>
+                </tbody>
+        </table>
+
+        <div class="summary-box">
+            <div>Total Arbeitsstunden: <b id="totalHrs">0:00</b></div>
+            <div style="text-align: right; font-size: 10px;">Nach 6h Arbeitszeit mind. 1/2h Pause</div>
+            <div>Urlaub / Krank (Tage): ______</div>
+            <div style="text-align: right; margin-top: 30px;">_____________________<br>Firmenstempel / Unterschrift</div>
+        </div>
+    </div>
+
+    <script>
+        let totalMinutes = 0;
+
+        function updateName() {
+            const name = document.getElementById('workerName').value;
+            document.getElementById('pdfWorkerName').innerText = name || "__________________________";
+        }
+
+        function addRow() {
+            const dateVal = document.getElementById('date').value;
+            if(!dateVal) { alert("Bitte Datum wählen!"); return; }
+            
+            const dateObj = new Date(dateVal);
+            const formattedDate = `${String(dateObj.getDate()).padStart(2,'0')}.${String(dateObj.getMonth()+1).padStart(2,'0')}. (${dateObj.toLocaleDateString('de-DE', {weekday: 'short'})})`;
+            
+            const start = document.getElementById('start').value;
+            const end = document.getElementById('end').value;
+            const pause = parseInt(document.getElementById('pause').value) || 0;
+            const location = document.getElementById('location').value;
+
+            const s = start.split(':');
+            const e = end.split(':');
+            const diffMin = (parseInt(e[0])*60 + parseInt(e[1])) - (parseInt(s[0])*60 + parseInt(s[1])) - pause;
+
+            if(diffMin < 0) { alert("Ungültige Zeit!"); return; }
+
+            const hrs = Math.floor(diffMin / 60);
+            const mins = diffMin % 60;
+            const timeString = `${hrs}:${String(mins).padStart(2, '0')}`;
+            
+            totalMinutes += diffMin;
+
+            const table = document.getElementById('timesheetTable').getElementsByTagName('tbody')[0];
+            const row = table.insertRow();
+            row.innerHTML = `<td>${formattedDate}</td><td>${start}</td><td>${end}</td><td>${pause} min</td><td>${timeString}</td><td style="text-align:left; padding-left:10px;">${location}</td>`;
+
+            updateTotal();
+            
+            const monthNames = ["Januar", "Februar", "März", "April", "Mai", "Juni", "Juli", "August", "September", "Oktober", "November", "Dezember"];
+            document.getElementById('monthDisplay').innerText = `Monat / Jahr: ${monthNames[dateObj.getMonth()]} / ${dateObj.getFullYear()}`;
+        }
+
+        function updateTotal() {
+            const h = Math.floor(totalMinutes / 60);
+            const m = totalMinutes % 60;
+            document.getElementById('totalHrs').innerText = `${h}:${String(m).padStart(2, '0')}`;
+        }
+
+        function generatePDF() {
+            const element = document.getElementById('printable-area');
+            const opt = {
+                margin: 0,
+                filename: `Stundennachweis_${document.getElementById('workerName').value || 'Mitarbeiter'}.pdf`,
+                image: { type: 'jpeg', quality: 0.98 },
+                html2canvas: { scale: 2 },
+                jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
+            };
+            html2pdf().set(opt).from(element).save();
+        }
+
+        function resetForm() {
+            if(confirm("Möchten Sie wirklich alle Daten löschen?")) {
+                location.reload();
+            }
+        }
+    </script>
+</body>
+</html>
