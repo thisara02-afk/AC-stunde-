@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AC Elektro - Stundennachweis</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+    <style>
+        :root { --brand-green: #4db34d; --brand-blue: #0d6efd; --bg-color: #f8f9fa; }
+        body { font-family: 'Segoe UI', Arial, sans-serif; background: var(--bg-color); margin: 0; padding: 10px; display: flex; flex-direction: column; align-items: center; }
+        
+        /* App Layout */
+        .input-panel { width: 95%; max-width: 600px; background: white; padding: 15px; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); margin-bottom: 10px; }
+        .input-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 15px; }
+        label { font-size: 11px; font-weight: bold; color: #555; display: block; margin-bottom: 2px; }
+        input { padding: 8px; border: 1px solid #ccc; border-radius: 6px; width: 100%; box-sizing: border-box; font-size: 14px; }
+        
+        .btn-group { display: flex; gap: 8px; flex-wrap: wrap; justify-content: center; }
+        button { border: none; padding: 10px 15px; border-radius: 6px; cursor: pointer; font-weight: bold; color: white; font-size: 13px; transition: 0.3s; }
+        .btn-add { background: #5cb85c; }
+        .btn-pdf { background: var(--brand-blue); }
+        .btn-reset { background: #d9534f; }
+
+        /* ඔයා ඇහුව පොඩි නම මෙතන (Credits) */
+        .dev-name { font-size: 9px; color: #aaa; text-align: center; margin-top: 8px; font-style: italic; border-top: 1px solid #eee; padding-top: 5px; }
+
+        /* PDF Styles */
+        #printable-area { width: 210mm; background: white; padding: 15mm; color: black; }
+        .pdf-header { border-bottom: 2px solid black; display: flex; justify-content: space-between; align-items: flex-end; padding-bottom: 5px; margin-bottom: 15px; }
+        table { width: 100%; border-collapse: collapse; font-size: 11px; }
+        th, td { border: 1px solid black; padding: 6px; text-align: center; }
+        th { background: #f2f2f2; }
+        .summary { margin-top: 15px; display: flex; justify-content: space-between; font-size: 13px; }
+
+        .no-print { display: block; }
+        @media print { .no-print { display: none !important; } }
+    </style>
+</head>
+<body>
+
+    <div class="input-panel no-print">
+        <div class="input-grid">
+            <div style="grid-column: span 2;"><label>Name, Vorname</label><input type="text" id="workerName" oninput="document.getElementById('pdfName').innerText = this.value"></div>
+            <div><label>Datum</label><input type="date" id="date"></div>
+            <div><label>Einsatzort</label><input type="text" id="location"></div>
+            <div><label>Beginn</label><input type="time" id="start" value="07:00"></div>
+            <div><label>Ende</label><input type="time" id="end" value="16:00"></div>
+            <div style="grid-column: span 2;"><label>Pause (Minuten)</label><input type="number" id="pause" value="30"></div>
+        </div>
+        <div class="btn-group">
+            <button class="btn-add" onclick="addRow()">Hinzufügen</button>
+            <button class="btn-pdf" onclick="generatePDF()">PDF Download</button>
+            <button class="btn-reset" onclick="location.reload()">Reset</button>
+        </div>
+        <div class="dev-name">v6.5 | Developed by Thisara</div>
+    </div>
+
+    <div id="printable-area">
+        <div class="pdf-header">
+            <h2 style="margin:0; text-decoration: underline;">Stundennachweis</h2>
+            <div style="text-align:right; color:var(--brand-green); font-weight:bold;">AC ELEKTRO</div>
+        </div>
+        <p style="font-size:14px;">Name: <b id="pdfName">________________</b></p>
+        <table id="table">
+            <thead>
+                <tr>
+                    <th>Datum</th>
+                    <th>Beginn</th>
+                    <th>Ende</th>
+                    <th>Pause</th>
+                    <th>Stunden</th>
+                    <th>Einsatzort</th>
+                </tr>
+            </thead>
+            <tbody></tbody>
+        </table>
+        <div class="summary">
+            <div>Gesamtstunden: <b id="total">0:00</b></div>
+            <div style="text-align:right;">___________________<br><small>Unterschrift</small></div>
+        </div>
+    </div>
+
+    <script>
+        let totalMins = 0;
+        function addRow() {
+            const d = document.getElementById('date').value;
+            if(!d) return;
+            const s = document.getElementById('start').value.split(':');
+            const e = document.getElementById('end').value.split(':');
+            const p = parseInt(document.getElementById('pause').value);
+            const loc = document.getElementById('location').value;
+            
+            const diff = (parseInt(e[0])*60 + parseInt(e[1])) - (parseInt(s[0])*60 + parseInt(s[1])) - p;
+            if(diff < 0) return;
+            
+            totalMins += diff;
+            const h = Math.floor(diff/60);
+            const m = diff%60;
+            const timeStr = `${h}:${m.toString().padStart(2,'0')}`;
+
+            const row = document.getElementById('table').tBodies[0].insertRow();
+            row.innerHTML = `<td>${d}</td><td>${document.getElementById('start').value}</td><td>${document.getElementById('end').value}</td><td>${p}m</td><td>${timeStr}</td><td>${loc}</td>`;
+            
+            const th = Math.floor(totalMins/60);
+            const tm = totalMins%60;
+            document.getElementById('total').innerText = `${th}:${tm.toString().padStart(2,'0')}`;
+        }
+
+        function generatePDF() {
+            const element = document.getElementById('printable-area');
+            html2pdf().from(element).set({ margin: 10, filename: 'Timesheet.pdf', html2canvas: { scale: 2 } }).save();
+        }
+    </script>
+</body>
+</html>
