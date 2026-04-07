@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>AC Elektro - Stundennachweis v7.5</title>
+    <title>AC Elektro - Stundennachweis v9.5</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/signature_pad@4.0.0/dist/signature_pad.umd.min.js"></script>
     
@@ -11,29 +11,33 @@
         :root { --brand-green: #4db34d; --brand-blue: #0d6efd; --bg-color: #f8f9fa; }
         body { font-family: -apple-system, system-ui, sans-serif; background: var(--bg-color); margin: 0; padding: 10px; display: flex; flex-direction: column; align-items: center; overflow-x: hidden; }
         
+        /* App Panel UI */
         .input-panel { width: 100%; max-width: 500px; background: white; padding: 20px; border-radius: 15px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); box-sizing: border-box; }
         .input-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 15px; }
         label { font-size: 11px; font-weight: bold; color: #555; display: block; margin-bottom: 4px; text-transform: uppercase; }
         input { padding: 12px; border: 1px solid #ccc; border-radius: 8px; width: 100%; box-sizing: border-box; font-size: 16px; -webkit-appearance: none; }
 
+        /* Signature Pad */
         .sig-container { 
             margin-top: 10px; 
             background: #fff; 
-            border: 2px solid #ddd; 
+            border: 2px dashed #ccc; 
             border-radius: 10px; 
             width: 100%; 
             height: 160px; 
             position: relative;
             touch-action: none; 
         }
+        .sig-placeholder { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); color: #ccc; pointer-events: none; font-size: 13px; }
         canvas { width: 100%; height: 100%; border-radius: 10px; touch-action: none; }
         
         .btn-group { display: flex; gap: 10px; margin-top: 15px; flex-wrap: wrap; }
         button { flex: 1; padding: 15px; border: none; border-radius: 10px; cursor: pointer; font-weight: bold; font-size: 15px; transition: 0.3s; }
         .btn-save { background: var(--brand-green); color: white; }
         .btn-pdf { background: var(--brand-blue); color: white; }
-        .btn-clear { background: #f0f0f0; color: #333; font-size: 12px; margin-top: 5px; width: auto; padding: 8px 15px; display: inline-block; border-radius: 5px; border: 1px solid #ccc; }
+        .btn-clear { background: #f0f0f0; color: #333; font-size: 12px; margin-top: 8px; width: auto; padding: 6px 12px; border-radius: 5px; border: 1px solid #ccc; }
 
+        /* PDF Area (Hidden on Screen) */
         #printable-area { width: 210mm; background: white; padding: 15mm; color: black; display: none; }
         #printable-area.show-pdf { display: block; position: absolute; left: -9999px; }
         
@@ -44,32 +48,34 @@
         .footer { margin-top: 40px; display: flex; justify-content: space-between; align-items: flex-end; }
         .sig-box { border-bottom: 1px solid black; width: 220px; height: 80px; text-align: center; }
         
-        .dev-tag { font-size: 9px; color: #bbb; text-align: center; margin-top: 25px; font-style: italic; border-top: 1px solid #eee; padding-top: 10px; width: 100%; }
+        /* Developer Note (Only on App, Hidden in PDF) */
+        .dev-tag { font-size: 9px; color: #bbb; text-align: center; margin-top: 25px; font-style: italic; padding-top: 10px; border-top: 1px solid #eee; width: 100%; }
     </style>
 </head>
 <body>
 
 <div class="input-panel">
-    <h3 style="margin:0 0 15px 0; color:var(--brand-green); text-align:center;">AC ELEKTRO</h3>
+    <h2 style="margin:0 0 15px 0; color:var(--brand-green); text-align:center;">AC ELEKTRO</h2>
     
     <div class="input-grid">
         <div style="grid-column: span 2;"><label>Name, Vorname</label><input type="text" id="name-in" placeholder="Mitarbeiter Name"></div>
-        <div><label>Monat / Jahr</label><input type="month" id="month-in"></div>
-        <div><label>Tag (1-31)</label><input type="number" id="day-in" min="1" max="31"></div>
+        <div><label>Monat</label><input type="month" id="month-in"></div>
+        <div><label>Tag</label><input type="number" id="day-in" min="1" max="31"></div>
         <div><label>Beginn</label><input type="time" id="start-in" value="07:00"></div>
         <div><label>Ende</label><input type="time" id="end-in" value="16:00"></div>
-        <div style="grid-column: span 2;"><label>Einsatzort</label><input type="text" id="city-in" placeholder="Baustelle / Ort"></div>
+        <div style="grid-column: span 2;"><label>Einsatzort</label><input type="text" id="city-in" placeholder="Ort / Baustelle"></div>
     </div>
 
     <label>Unterschrift:</label>
-    <div class="sig-container">
+    <div class="sig-container" id="sig-box">
+        <div class="sig-placeholder" id="sig-text">Hier unterschreiben</div>
         <canvas id="sig-canvas"></canvas>
     </div>
-    <button class="btn-clear" onclick="signaturePad.clear()">Löschen</button>
+    <button class="btn-clear" onclick="clearSignature()">Löschen</button>
 
     <div class="btn-group">
         <button class="btn-save" onclick="saveEntry()">Hinzufügen</button>
-        <button class="btn-pdf" onclick="generatePDF()">PDF Erstellen</button>
+        <button class="btn-pdf" onclick="generatePDF()">PDF Download</button>
     </div>
     
     <div class="dev-tag">Entwickelt von Thisara Jayalakshana</div>
@@ -77,7 +83,7 @@
 
 <div id="printable-area" class="show-pdf">
     <div style="display:flex; justify-content:space-between; border-bottom:2px solid black; padding-bottom:10px;">
-        <h2 style="margin:0; text-decoration: underline;">Stundennachweis</h2>
+        <h1 style="margin:0; text-decoration: underline;">Stundennachweis</h1>
         <h2 style="margin:0; color:var(--brand-green);">AC ELEKTRO</h2>
     </div>
     
@@ -110,51 +116,65 @@
 </div>
 
 <script>
-    let db = JSON.parse(localStorage.getItem('ac_v8_data')) || {};
-    const canvas = document.querySelector("canvas");
+    // LocalStorage Data Storage
+    let db = JSON.parse(localStorage.getItem('ac_v95_data')) || {};
+    const canvas = document.getElementById("sig-canvas");
+    const sigText = document.getElementById("sig-text");
     
+    // Initialize Signature Pad
     const signaturePad = new SignaturePad(canvas, {
-        backgroundColor: 'rgb(255, 255, 255)',
-        penColor: 'rgb(0, 0, 0)'
+        onBegin: () => { sigText.style.display = "none"; }
     });
 
+    // Resize Canvas for iPhone / Responsiveness
     function resizeCanvas() {
         const ratio = Math.max(window.devicePixelRatio || 1, 1);
         canvas.width = canvas.offsetWidth * ratio;
         canvas.height = canvas.offsetHeight * ratio;
         canvas.getContext("2d").scale(ratio, ratio);
         signaturePad.clear();
+        sigText.style.display = "block";
     }
     window.onresize = resizeCanvas;
-    resizeCanvas();
+    window.onload = resizeCanvas;
 
+    function clearSignature() {
+        signaturePad.clear();
+        sigText.style.display = "block";
+    }
+
+    // Add Entry
     function saveEntry() {
         const m = document.getElementById('month-in').value;
         const d = document.getElementById('day-in').value;
-        if(!m || !d) { alert("Bitte Datum und Tag eingeben!"); return; }
+        if(!m || !d) { alert("Bitte Monat und Tag wählen!"); return; }
         
         const st = document.getElementById('start-in').value;
         const et = document.getElementById('end-in').value;
-        
+        const city = document.getElementById('city-in').value;
+
         const sParts = st.split(':');
         const eParts = et.split(':');
+        
         let diffMin = (parseInt(eParts[0])*60 + parseInt(eParts[1])) - (parseInt(sParts[0])*60 + parseInt(sParts[1]));
         
-        let p = 0;
-        if(diffMin > 360) p = 30; // Pause 30 min if > 6h
-        diffMin -= p;
+        // Deduction: 30 min pause if worked more than 6 hours
+        let pauseMin = 0;
+        if(diffMin > 360) pauseMin = 30;
+        diffMin -= pauseMin;
 
-        db[m + "-" + d] = { s: st, e: et, p: p, m: diffMin, c: document.getElementById('city-in').value };
-        localStorage.setItem('ac_v8_data', JSON.stringify(db));
+        db[m + "-" + d] = { s: st, e: et, p: pauseMin, m: diffMin, c: city };
+        localStorage.setItem('ac_v95_data', JSON.stringify(db));
         alert("Eintrag gespeichert!");
     }
 
+    // Generate PDF
     function generatePDF() {
         const mVal = document.getElementById('month-in').value;
         if(!mVal) { alert("Bitte Monat wählen!"); return; }
         if(signaturePad.isEmpty()) { alert("Bitte unterschreiben!"); return; }
 
-        document.getElementById('pdf-name').innerText = document.getElementById('name-in').value || "________________";
+        document.getElementById('pdf-name').innerText = document.getElementById('name-in').value || "Mitarbeiter";
         document.getElementById('pdf-month').innerText = mVal;
         
         const tbody = document.querySelector('#pdf-table tbody');
@@ -164,7 +184,9 @@
         const days = new Date(y, m, 0).getDate();
 
         for(let i=1; i<=days; i++) {
-            const r = db[mVal + "-" + i] || { s:'', e:'', p:0, m:0, c:'' };
+            const key = mVal + "-" + i;
+            const r = db[key] || { s:'', e:'', p:0, m:0, c:'' };
+            
             const h = Math.floor(r.m / 60);
             const min = r.m % 60;
             const timeStr = r.m > 0 ? `${h}:${min.toString().padStart(2, '0')}` : '';
