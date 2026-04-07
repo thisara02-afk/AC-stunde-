@@ -2,113 +2,161 @@
 <html lang="de">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>AC Elektro - Stundennachweis</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>AC Elektro Stundennachweis</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
     <style>
-        :root { --brand-green: #4db34d; --brand-blue: #0d6efd; --bg-color: #f8f9fa; }
-        body { font-family: 'Segoe UI', Arial, sans-serif; background: var(--bg-color); margin: 0; padding: 10px; display: flex; flex-direction: column; align-items: center; }
+        :root { --green: #4db34d; --blue: #0d6efd; --bg: #f0f2f5; }
+        body { font-family: -apple-system, sans-serif; background: var(--bg); margin: 0; padding: 15px; display: flex; flex-direction: column; align-items: center; }
         
-        /* App Layout */
-        .input-panel { width: 95%; max-width: 600px; background: white; padding: 15px; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); margin-bottom: 10px; }
-        .input-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 15px; }
-        label { font-size: 11px; font-weight: bold; color: #555; display: block; margin-bottom: 2px; }
-        input { padding: 8px; border: 1px solid #ccc; border-radius: 6px; width: 100%; box-sizing: border-box; font-size: 14px; }
+        /* App Interface Styling */
+        .app-container { width: 100%; max-width: 500px; background: white; padding: 20px; border-radius: 15px; box-shadow: 0 10px 25px rgba(0,0,0,0.1); box-sizing: border-box; }
+        h2 { text-align: center; color: #333; margin-top: 0; font-size: 20px; }
         
-        .btn-group { display: flex; gap: 8px; flex-wrap: wrap; justify-content: center; }
-        button { border: none; padding: 10px 15px; border-radius: 6px; cursor: pointer; font-weight: bold; color: white; font-size: 13px; transition: 0.3s; }
-        .btn-add { background: #5cb85c; }
-        .btn-pdf { background: var(--brand-blue); }
-        .btn-reset { background: #d9534f; }
+        .input-group { margin-bottom: 12px; }
+        label { font-size: 12px; font-weight: bold; color: #666; display: block; margin-bottom: 4px; }
+        input { width: 100%; padding: 12px; border: 1px solid #ddd; border-radius: 8px; font-size: 16px; box-sizing: border-box; -webkit-appearance: none; }
+        
+        .row { display: flex; gap: 10px; }
+        .row > div { flex: 1; }
 
-        /* ඔයා ඇහුව පොඩි නම මෙතන (Credits) */
-        .dev-name { font-size: 9px; color: #aaa; text-align: center; margin-top: 8px; font-style: italic; border-top: 1px solid #eee; padding-top: 5px; }
+        .btn-add { background: var(--green); color: white; width: 100%; padding: 15px; border: none; border-radius: 8px; font-weight: bold; font-size: 16px; margin-top: 10px; cursor: pointer; }
+        .btn-pdf { background: var(--blue); color: white; width: 100%; padding: 15px; border: none; border-radius: 8px; font-weight: bold; font-size: 16px; margin-top: 10px; cursor: pointer; }
+        .btn-reset { background: #ff4d4d; color: white; width: 100%; padding: 10px; border: none; border-radius: 8px; font-weight: bold; font-size: 14px; margin-top: 10px; cursor: pointer; opacity: 0.8; }
 
-        /* PDF Styles */
-        #printable-area { width: 210mm; background: white; padding: 15mm; color: black; }
-        .pdf-header { border-bottom: 2px solid black; display: flex; justify-content: space-between; align-items: flex-end; padding-bottom: 5px; margin-bottom: 15px; }
-        table { width: 100%; border-collapse: collapse; font-size: 11px; }
-        th, td { border: 1px solid black; padding: 6px; text-align: center; }
-        th { background: #f2f2f2; }
-        .summary { margin-top: 15px; display: flex; justify-content: space-between; font-size: 13px; }
+        .dev-tag { font-size: 10px; color: #bbb; text-align: center; margin-top: 15px; font-style: italic; }
 
-        .no-print { display: block; }
-        @media print { .no-print { display: none !important; } }
+        /* මේක තමයි රහස - PDF එක ඇප් එක ඇතුළේ හංගනවා */
+        #printable-area { 
+            position: absolute; 
+            left: -9999px; 
+            top: 0; 
+            width: 210mm; 
+            background: white; 
+            padding: 15mm; 
+            color: black; 
+        }
+
+        /* PDF Table Styling */
+        table { width: 100%; border-collapse: collapse; margin-top: 20px; }
+        th, td { border: 1px solid #000; padding: 8px; text-align: center; font-size: 12px; }
+        th { background: #eee; }
     </style>
 </head>
 <body>
 
-    <div class="input-panel no-print">
-        <div class="input-grid">
-            <div style="grid-column: span 2;"><label>Name, Vorname</label><input type="text" id="workerName" oninput="document.getElementById('pdfName').innerText = this.value"></div>
-            <div><label>Datum</label><input type="date" id="date"></div>
-            <div><label>Einsatzort</label><input type="text" id="location"></div>
-            <div><label>Beginn</label><input type="time" id="start" value="07:00"></div>
-            <div><label>Ende</label><input type="time" id="end" value="16:00"></div>
-            <div style="grid-column: span 2;"><label>Pause (Minuten)</label><input type="number" id="pause" value="30"></div>
+    <div class="app-container no-print">
+        <h2>AC Elektro</h2>
+        
+        <div class="input-group">
+            <label>Name, Vorname</label>
+            <input type="text" id="workerName" placeholder="ඔබේ නම">
         </div>
-        <div class="btn-group">
-            <button class="btn-add" onclick="addRow()">Hinzufügen</button>
-            <button class="btn-pdf" onclick="generatePDF()">PDF Download</button>
-            <button class="btn-reset" onclick="location.reload()">Reset</button>
+
+        <div class="row">
+            <div class="input-group">
+                <label>Datum</label>
+                <input type="date" id="date">
+            </div>
+            <div class="input-group">
+                <label>Einsatzort</label>
+                <input type="text" id="location" placeholder="වැඩබිම">
+            </div>
         </div>
-        <div class="dev-name">v6.5 | Developed by Thisara</div>
+
+        <div class="row">
+            <div class="input-group">
+                <label>Beginn</label>
+                <input type="time" id="start" value="07:00">
+            </div>
+            <div class="input-group">
+                <label>Ende</label>
+                <input type="time" id="end" value="16:00">
+            </div>
+        </div>
+
+        <div class="input-group">
+            <label>Pause (Minuten)</label>
+            <input type="number" id="pause" value="30">
+        </div>
+
+        <button class="btn-add" onclick="addRow()">➕ Hinzufügen (ඇතුළත් කරන්න)</button>
+        <button class="btn-pdf" onclick="generatePDF()">📥 PDF Herunterladen (ඩවුන්ලෝඩ්)</button>
+        <button class="btn-reset" onclick="location.reload()">🔄 Reset (මකන්න)</button>
+        
+        <div class="dev-tag">Developed by Thisara</div>
     </div>
 
     <div id="printable-area">
-        <div class="pdf-header">
-            <h2 style="margin:0; text-decoration: underline;">Stundennachweis</h2>
-            <div style="text-align:right; color:var(--brand-green); font-weight:bold;">AC ELEKTRO</div>
+        <div style="display:flex; justify-content:space-between; border-bottom:2px solid #000; padding-bottom:10px;">
+            <h1 style="text-decoration:underline;">Stundennachweis</h1>
+            <h2 style="color:#4db34d;">AC ELEKTRO</h2>
         </div>
-        <p style="font-size:14px;">Name: <b id="pdfName">________________</b></p>
-        <table id="table">
+        <p>Name: <b id="pdfNameDisplay">________________</b></p>
+        <table id="pdfTable">
             <thead>
                 <tr>
                     <th>Datum</th>
                     <th>Beginn</th>
                     <th>Ende</th>
                     <th>Pause</th>
-                    <th>Stunden</th>
+                    <th>Arbeitsstunden</th>
                     <th>Einsatzort</th>
                 </tr>
             </thead>
             <tbody></tbody>
         </table>
-        <div class="summary">
-            <div>Gesamtstunden: <b id="total">0:00</b></div>
-            <div style="text-align:right;">___________________<br><small>Unterschrift</small></div>
+        <div style="margin-top:20px; display:flex; justify-content:space-between;">
+            <p>Total Stunden: <b id="totalDisplay">0:00</b></p>
+            <p>___________________<br>Unterschrift</p>
         </div>
     </div>
 
     <script>
-        let totalMins = 0;
-        function addRow() {
-            const d = document.getElementById('date').value;
-            if(!d) return;
-            const s = document.getElementById('start').value.split(':');
-            const e = document.getElementById('end').value.split(':');
-            const p = parseInt(document.getElementById('pause').value);
-            const loc = document.getElementById('location').value;
-            
-            const diff = (parseInt(e[0])*60 + parseInt(e[1])) - (parseInt(s[0])*60 + parseInt(s[1])) - p;
-            if(diff < 0) return;
-            
-            totalMins += diff;
-            const h = Math.floor(diff/60);
-            const m = diff%60;
-            const timeStr = `${h}:${m.toString().padStart(2,'0')}`;
+        let totalMinutes = 0;
 
-            const row = document.getElementById('table').tBodies[0].insertRow();
-            row.innerHTML = `<td>${d}</td><td>${document.getElementById('start').value}</td><td>${document.getElementById('end').value}</td><td>${p}m</td><td>${timeStr}</td><td>${loc}</td>`;
+        function addRow() {
+            const date = document.getElementById('date').value;
+            const start = document.getElementById('start').value;
+            const end = document.getElementById('end').value;
+            const pause = parseInt(document.getElementById('pause').value) || 0;
+            const loc = document.getElementById('location').value;
+            const name = document.getElementById('workerName').value;
+
+            if(!date) { alert("දිනය ඇතුළත් කරන්න"); return; }
+            document.getElementById('pdfNameDisplay').innerText = name || "________________";
+
+            const s = start.split(':');
+            const e = end.split(':');
+            const diff = (parseInt(e[0])*60 + parseInt(e[1])) - (parseInt(s[0])*60 + parseInt(s[1])) - pause;
+
+            if(diff < 0) { alert("කරුණාකර වේලාව පරීක්ෂා කරන්න"); return; }
+
+            totalMinutes += diff;
+            const hrs = Math.floor(diff/60);
+            const mins = diff%60;
+            const timeStr = `${hrs}:${mins.toString().padStart(2,'0')}`;
+
+            const tbody = document.getElementById('pdfTable').tBodies[0];
+            const row = tbody.insertRow();
+            row.innerHTML = `<td>${date}</td><td>${start}</td><td>${end}</td><td>${pause}m</td><td>${timeStr}</td><td>${loc}</td>`;
+
+            const th = Math.floor(totalMinutes/60);
+            const tm = totalMinutes%60;
+            document.getElementById('totalDisplay').innerText = `${th}:${tm.toString().padStart(2,'0')}`;
             
-            const th = Math.floor(totalMins/60);
-            const tm = totalMins%60;
-            document.getElementById('total').innerText = `${th}:${tm.toString().padStart(2,'0')}`;
+            alert("දත්ත ඇතුළත් විය!");
         }
 
         function generatePDF() {
             const element = document.getElementById('printable-area');
-            html2pdf().from(element).set({ margin: 10, filename: 'Timesheet.pdf', html2canvas: { scale: 2 } }).save();
+            const name = document.getElementById('workerName').value || "Timesheet";
+            html2pdf().from(element).set({
+                margin: 10,
+                filename: `${name}.pdf`,
+                html2canvas: { scale: 2 },
+                jsPDF: { orientation: 'portrait' }
+            }).save();
         }
     </script>
 </body>
