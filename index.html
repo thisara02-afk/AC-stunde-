@@ -3,204 +3,256 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>AC ELEKTRO - Zeiterfassung v25.0</title>
+    <title>AC ELEKTRO - Zeiterfassung PRO V3.0</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/signature_pad@4.0.0/dist/signature_pad.umd.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     
     <style>
-        :root { --brand-green: #4db34d; --brand-blue: #0d6efd; --ot-orange: #f39c12; }
-        body { font-family: 'Segoe UI', Arial, sans-serif; background: #f0f2f5; margin: 0; padding: 10px; display: flex; flex-direction: column; align-items: center; }
-        .card { width: 100%; max-width: 550px; background: white; padding: 20px; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); margin-bottom: 20px; box-sizing: border-box; }
-        h2 { text-align: center; color: var(--brand-green); margin-top: 0; }
-        .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+        :root { --brand-green: #2ecc71; --brand-blue: #3498db; --ot-orange: #f39c12; --danger: #e74c3c; --dark: #2c3e50; }
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: #f4f7f6; margin: 0; padding: 10px; display: flex; flex-direction: column; align-items: center; color: var(--dark); }
+        .card { width: 100%; max-width: 600px; background: white; padding: 25px; border-radius: 15px; box-shadow: 0 10px 25px rgba(0,0,0,0.1); margin-bottom: 20px; box-sizing: border-box; border-top: 5px solid var(--brand-green); }
+        h2 { text-align: center; color: var(--brand-green); margin-top: 0; letter-spacing: 2px; text-transform: uppercase; }
+        .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
         .full-width { grid-column: span 2; }
-        label { font-size: 11px; font-weight: bold; color: #555; text-transform: uppercase; display: block; margin-bottom: 4px; }
-        input, select { padding: 12px; border: 1px solid #ccc; border-radius: 6px; width: 100%; font-size: 16px; margin-bottom: 10px; box-sizing: border-box; }
-        .sig-container { margin: 15px 0 5px 0; background: #fafafa; border: 2px dashed #bbb; border-radius: 8px; width: 100%; height: 140px; position: relative; touch-action: none; }
-        .sig-placeholder { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); color: #aaa; font-size: 13px; pointer-events: none; }
+        label { font-size: 12px; font-weight: 700; color: #7f8c8d; text-transform: uppercase; margin-bottom: 5px; display: block; }
+        input, select { padding: 12px; border: 1px solid #dcdde1; border-radius: 8px; width: 100%; font-size: 16px; transition: 0.3s; box-sizing: border-box; }
+        input:focus { border-color: var(--brand-green); outline: none; box-shadow: 0 0 8px rgba(46, 204, 113, 0.2); }
+
+        .chart-container { margin: 20px 0; height: 200px; width: 100%; }
+
+        .sig-container { margin: 15px 0 5px 0; background: #f9f9f9; border: 2px dashed #bdc3c7; border-radius: 10px; height: 150px; position: relative; touch-action: none; }
+        .sig-placeholder { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); color: #bdc3c7; pointer-events: none; font-size: 14px; }
         canvas { width: 100%; height: 100%; cursor: crosshair; }
+        
         .btn-group { display: flex; gap: 10px; margin-top: 15px; }
-        button { flex: 1; padding: 15px; border: none; border-radius: 8px; cursor: pointer; font-weight: bold; color: white; font-size: 14px; }
+        button { flex: 1; padding: 15px; border: none; border-radius: 10px; cursor: pointer; font-weight: 700; color: white; transition: 0.3s; font-size: 14px; }
         .btn-save { background: var(--brand-green); }
         .btn-pdf { background: var(--brand-blue); }
-        .btn-clear { background: #666; font-size: 11px; padding: 8px; margin-bottom: 10px; width: auto; flex: none; }
-        .full-view-container { width: 100%; max-width: 750px; background: white; padding: 15px; border-radius: 10px; overflow-x: auto; box-shadow: 0 2px 5px rgba(0,0,0,0.05); margin-bottom: 40px; }
-        .full-table { width: 100%; border-collapse: collapse; font-size: 12px; min-width: 650px; }
-        .full-table th, .full-table td { border: 1px solid #eee; padding: 8px; text-align: center; }
-        .full-table th { background: #f4f4f4; }
-        .summary-display { margin-top: 15px; font-size: 14px; font-weight: bold; border-top: 3px solid var(--brand-green); padding-top: 15px; display: flex; justify-content: space-around; gap: 10px; }
-        #pdf-wrapper { position: absolute; left: -9999px; top: 0; }
-        #pdf-content { width: 210mm; padding: 15mm; background: white; color: black; }
-        .pdf-header { display: flex; justify-content: space-between; border-bottom: 2px solid #000; padding-bottom: 10px; margin-bottom: 20px; }
-        .pdf-table { width: 100%; border-collapse: collapse; margin-bottom: 20px; }
-        .pdf-table th, .pdf-table td { border: 1px solid #333; padding: 4px; text-align: center; font-size: 10px; }
-        .pdf-summary-box { display: flex; justify-content: space-between; align-items: flex-end; margin-top: 30px; }
-        .pdf-sum-lines div { border-bottom: 1px solid #333; padding: 5px 0; width: 280px; display: flex; justify-content: space-between; font-size: 12px; }
+        .btn-backup { background: var(--dark); font-size: 12px; }
+        .btn-clear { background: #95a5a6; padding: 8px; width: auto; flex: none; font-size: 11px; margin-bottom: 10px; }
+        
+        .dashboard { width: 100%; max-width: 800px; background: white; padding: 20px; border-radius: 15px; overflow-x: auto; box-shadow: 0 5px 15px rgba(0,0,0,0.05); }
+        table { width: 100%; border-collapse: collapse; font-size: 13px; min-width: 600px; }
+        th, td { border-bottom: 1px solid #ecf0f1; padding: 12px 8px; text-align: center; }
+        th { background: #f8f9fa; color: #7f8c8d; }
+        .ot-row { color: var(--ot-orange); font-weight: bold; }
+
+        #backup-alert { display: none; background: #fff3cd; color: #856404; padding: 10px; border-radius: 8px; margin-bottom: 15px; font-size: 13px; text-align: center; border: 1px solid #ffeeba; font-weight: bold; }
     </style>
 </head>
 <body>
 
+<div id="backup-alert">⚠️ ERINNERUNG: Bitte führen Sie ein Datensicherung (Backup) durch, um Datenverlust zu vermeiden!</div>
+
 <div class="card">
-    <h2>AC ELEKTRO</h2>
+    <h2>AC ELEKTRO <span style="font-size: 12px; vertical-align: middle; color: #888;">PRO V3.0</span></h2>
+    
     <div class="grid">
-        <div class="full-width"><label>Name, Vorname</label><input type="text" id="name" placeholder="Name..." oninput="updateView()"></div>
-        <div><label>Monat / Jahr</label><input type="month" id="month" onchange="updateView()"></div>
-        <div><label>Tag</label><input type="number" id="day" min="1" max="31"></div>
-        <div><label>Beginn (7:00)</label><input type="time" id="start" value="07:00"></div>
-        <div><label>Ende (16:00)</label><input type="time" id="end" value="16:00"></div>
-        <div><label>Kategorie</label>
+        <div class="full-width">
+            <label>Mitarbeiter Name & ID</label>
+            <input type="text" id="emp_info" placeholder="Vorname Nachname - ID" oninput="updateView()">
+        </div>
+        <div>
+            <label>Monat / Jahr</label>
+            <input type="month" id="month" onchange="updateView()">
+        </div>
+        <div>
+            <label>Tag (1-31)</label>
+            <input type="number" id="day" min="1" max="31">
+        </div>
+        <div><label>Arbeitsbeginn</label><input type="time" id="start" value="07:00"></div>
+        <div><label>Arbeitsende</label><input type="time" id="end" value="16:00"></div>
+        <div>
+            <label>Kategorie</label>
             <select id="type">
                 <option value="work">Arbeit</option>
                 <option value="urlaub">Urlaub</option>
+                <option value="krank">Krankheit</option>
                 <option value="feiertag">Feiertag</option>
-                <option value="krank">Krank</option>
             </select>
         </div>
-        <div class="full-width"><label>Baustelle / Ort</label><input type="text" id="city" placeholder="Einsatzort"></div>
+        <div><label>Einsatzort / Projekt</label><input type="text" id="city" placeholder="Baustelle / Ort"></div>
     </div>
-    
+
     <div class="sig-container">
         <div class="sig-placeholder" id="sig-label">Hier unterschreiben</div>
         <canvas id="canvas"></canvas>
     </div>
-    <button class="btn-clear" onclick="pad.clear(); document.getElementById('sig-label').style.display='block';">Unterschrift löschen</button>
-    
+    <button class="btn-clear" onclick="pad.clear(); document.getElementById('sig-label').style.display='block';">Löschen</button>
+
     <div class="btn-group">
-        <button class="btn-save" onclick="save()">Speichern</button>
-        <button class="btn-pdf" onclick="generate()">PDF Erstellen</button>
+        <button class="btn-save" onclick="saveData()">Speichern</button>
+        <button class="btn-pdf" onclick="generatePDF()">PDF Erstellen</button>
+    </div>
+
+    <div class="btn-group">
+        <button class="btn-backup" onclick="exportJSON()">Backup Download</button>
+        <button class="btn-backup" style="background:#1abc9c" onclick="document.getElementById('fileIn').click()">Daten Wiederherstellen</button>
+        <input type="file" id="fileIn" style="display:none" onchange="importJSON(event)">
     </div>
 </div>
 
-<div class="full-view-container">
-    <table class="full-table">
+<div class="card">
+    <label>Wöchentliche Arbeitsstunden (Statistik)</label>
+    <div class="chart-container">
+        <canvas id="workChart"></canvas>
+    </div>
+</div>
+
+<div class="dashboard">
+    <h3 style="margin:0 0 15px 0;">Monatsübersicht</h3>
+    <table>
         <thead>
-            <tr><th>Tag</th><th>Start</th><th>Ende</th><th>Pause</th><th>Netto (h)</th><th>Überstd.</th><th>Baustelle</th></tr>
+            <tr>
+                <th>Tag</th>
+                <th>Zeitraum</th>
+                <th>Pause (h)</th>
+                <th>Netto (h)</th>
+                <th>Überstd. (h)</th>
+                <th>Einsatzort</th>
+            </tr>
         </thead>
-        <tbody id="ui-table-body"></tbody>
+        <tbody id="table-body"></tbody>
     </table>
-    <div class="summary-display">
-        <div>Gesamt Std: <span id="ui-total-hrs" style="color:var(--brand-blue);">0.00</span> h</div>
-        <div>Überstunden: <span id="ui-total-ot" style="color:var(--ot-orange);">0.00</span> h</div>
-    </div>
-</div>
-
-<div id="pdf-wrapper">
-    <div id="pdf-content">
-        <div class="pdf-header">
-            <div>
-                <h1 style="margin:0; font-size: 20px;">STUNDENNACHWEIS</h1>
-                <p>Name: <b id="out-name"></b> | Monat: <b id="out-month"></b></p>
-            </div>
-            <div style="text-align:right; color:var(--brand-green); font-size: 24px; font-weight: bold;">AC ELEKTRO</div>
-        </div>
-        <table class="pdf-table">
-            <thead>
-                <tr><th>Tag</th><th>Start</th><th>Ende</th><th>Pause</th><th>Netto (h)</th><th>Überstd.</th><th>Baustelle</th></tr>
-            </thead>
-            <tbody id="pdf-table-body"></tbody>
-        </table>
-        <div class="pdf-summary-box">
-            <div class="pdf-sum-lines">
-                <div>Arbeitsstunden Netto: <span id="sum-work">0.00</span></div>
-                <div>Gesamt Überstunden: <span id="sum-ot" style="font-weight:bold;">0.00</span></div>
-                <div>Urlaub/Krank/Feiertag: <span id="sum-others">0.00</span></div>
-                <div style="font-weight:bold; border-bottom: 2px solid #000; margin-top:10px; font-size: 14px;">GESAMTSTUNDEN: <span id="sum-total">0.00</span></div>
-            </div>
-            <div style="text-align:center;">
-                <img id="pdf-sig-img" style="max-height:60px; width:150px; display:none;">
-                <p style="font-size:10px; border-top:1px solid #000; padding-top:5px; width:180px;">Unterschrift Mitarbeiter</p>
-            </div>
-        </div>
-    </div>
 </div>
 
 <script>
-    let db = JSON.parse(localStorage.getItem('ac_v25_db')) || {};
+    let db = JSON.parse(localStorage.getItem('ace_v3_db')) || {};
     const canvas = document.getElementById("canvas");
     const pad = new SignaturePad(canvas, { onBegin: () => document.getElementById('sig-label').style.display='none' });
+    let workChart;
 
-    function resize() {
-        const r = window.devicePixelRatio || 1;
-        canvas.width = canvas.offsetWidth * r; canvas.height = canvas.offsetHeight * r;
-        canvas.getContext("2d").scale(r, r);
+    window.onload = () => {
+        setupCanvas();
+        const now = new Date();
+        document.getElementById('month').value = localStorage.getItem('ace_m') || now.toISOString().substring(0, 7);
+        document.getElementById('emp_info').value = localStorage.getItem('ace_n') || '';
+        document.getElementById('day').value = now.getDate();
+        
+        const lastB = localStorage.getItem('ace_last_b') || 0;
+        if(Date.now() - lastB > 7 * 24 * 60 * 60 * 1000) {
+            document.getElementById('backup-alert').style.display = 'block';
+        }
+        
+        initChart();
+        updateView();
+    };
+
+    function setupCanvas() {
+        const ratio = Math.max(window.devicePixelRatio || 1, 1);
+        canvas.width = canvas.offsetWidth * ratio;
+        canvas.height = canvas.offsetHeight * ratio;
+        canvas.getContext("2d").scale(ratio, ratio);
     }
-    window.onresize = resize;
-    window.onload = () => { resize(); updateView(); };
+
+    function initChart() {
+        const ctx = document.getElementById('workChart').getContext('2d');
+        workChart = new Chart(ctx, {
+            type: 'bar',
+            data: { labels: ['Woche 1', 'Woche 2', 'Woche 3', 'Woche 4', 'Woche 5'], datasets: [{ label: 'Arbeitsstunden', data: [0,0,0,0,0], backgroundColor: '#2ecc71' }] },
+            options: { maintainAspectRatio: false, scales: { y: { beginAtZero: true } } }
+        });
+    }
 
     function updateView() {
         const m = document.getElementById('month').value;
-        const n = document.getElementById('name').value;
-        document.getElementById('out-name').innerText = n;
-        document.getElementById('out-month').innerText = m;
-        const uiBody = document.getElementById('ui-table-body');
-        const pdfBody = document.getElementById('pdf-table-body');
-        uiBody.innerHTML = ""; pdfBody.innerHTML = "";
-        let s = { work:0, ot:0, others:0, total:0 };
+        localStorage.setItem('ace_m', m);
+        localStorage.setItem('ace_n', document.getElementById('emp_info').value);
 
-        for(let i=1; i<=31; i++) {
-            const entry = db[`${m}-${i}`] || {s:'', e:'', p:0, m:0, ot:0, c:'', t:'work'};
-            const hrs = entry.m > 0 ? (entry.m/60).toFixed(2) : '';
-            const ot = entry.ot > 0 ? (entry.ot/60).toFixed(2) : '';
-            const pause = entry.p > 0 ? (entry.p/60).toFixed(2) : '';
-            const html = `<tr><td>${i}</td><td>${entry.s}</td><td>${entry.e}</td><td>${pause}</td>
-                        <td style="font-weight:bold;">${hrs}</td><td style="color:var(--ot-orange);">${ot}</td><td>${entry.c}</td></tr>`;
-            uiBody.innerHTML += html; pdfBody.innerHTML += html;
-            if(entry.m > 0) {
-                if(entry.t === 'work') s.work += (entry.m - entry.ot);
-                else s.others += entry.m;
-                s.ot += entry.ot; s.total += entry.m;
+        const body = document.getElementById('table-body');
+        body.innerHTML = "";
+        let weekData = [0,0,0,0,0];
+        
+        const days = new Date(m.split('-')[0], m.split('-')[1], 0).getDate();
+        for(let i=1; i<=days; i++) {
+            const row = db[`${m}-${i}`] || {s:'', e:'', p:0, m:0, ot:0, c:''};
+            if(row.m > 0) {
+                const weekIdx = Math.floor((i-1)/7);
+                weekData[weekIdx] += (row.m/60);
             }
+            body.innerHTML += `<tr><td>${i}</td><td>${row.s ? row.s + ' - ' + row.e : '-'}</td><td>${row.p > 0 ? (row.p/60).toFixed(2) : '-'}</td>
+                               <td style="font-weight:bold">${row.m > 0 ? (row.m/60).toFixed(2) : '-'}</td>
+                               <td class="ot-row">${row.ot > 0 ? (row.ot/60).toFixed(2) : '-'}</td><td>${row.c || '-'}</td></tr>`;
         }
-        document.getElementById('ui-total-hrs').innerText = (s.total/60).toFixed(2);
-        document.getElementById('ui-total-ot').innerText = (s.ot/60).toFixed(2);
-        document.getElementById('sum-work').innerText = (s.work/60).toFixed(2);
-        document.getElementById('sum-ot').innerText = (s.ot/60).toFixed(2);
-        document.getElementById('sum-others').innerText = (s.others/60).toFixed(2);
-        document.getElementById('sum-total').innerText = (s.total/60).toFixed(2);
+        workChart.data.datasets[0].data = weekData;
+        workChart.update();
     }
 
-    function save() {
+    function saveData() {
         const m = document.getElementById('month').value, d = document.getElementById('day').value;
-        if(!m || !d) return alert("Datum wählen!");
-        const s = document.getElementById('start').value, e = document.getElementById('end').value, type = document.getElementById('type').value;
-        const sP = s.split(':'), eP = e.split(':');
-        let diff = (parseInt(eP[0])*60 + parseInt(eP[1])) - (parseInt(sP[0])*60 + parseInt(sP[1]));
-        if(diff <= 0) return alert("Zeitfehler!");
+        const sT = document.getElementById('start').value, eT = document.getElementById('end').value;
+        const type = document.getElementById('type').value, city = document.getElementById('city').value;
 
-        // --- නව විවේක කාල Logic (New Pause Logic) ---
-        let pause = 0;
+        if(!m || !d) return alert("Bitte wählen Sie ein Datum aus!");
+        if(type === 'work' && !city) return alert("Bitte geben Sie einen Einsatzort an!");
+
+        const [sh, sm] = sT.split(':').map(Number), [eh, em] = eT.split(':').map(Number);
+        const diff = (eh * 60 + em) - (sh * 60 + sm);
+        if(diff <= 0) return alert("Fehler: Das Arbeitsende muss nach dem Arbeitsbeginn liegen!");
+
+        let pause = 0, net = diff, ot = 0;
+        const dateObj = new Date(`${m}-${d}`);
+        const dayOfWeek = dateObj.getDay();
+
         if(type === 'work') {
-            if(diff > 540) { // පැය 9 ට වඩා වැඩි නම්
-                pause = 45; // විනාඩි 45
-            } else if (diff >= 360) { // පැය 6 සිට 9 දක්වා
-                pause = 30; // විනාඩි 30
+            if(dayOfWeek === 5) { // FREITAG (Spezialregel: 07:00 - 12:00 = 5h/300min)
+                if(diff > 300) ot = diff - 300;
+            } else { // MO-DO & SA-SO
+                if(diff > 540) pause = 45; else if(diff >= 360) pause = 30;
+                net = diff - pause;
+                if(net > 510) ot = net - 510; // 8.5h Regel
             }
         }
-
-        let net = diff - pause;
-        let ot = 0;
-
-        // පැය 8.5 (විනාඩි 510) ඉක්මවන කාලය අමතර පැය ලෙස වැටේ
-        // (උදා: 7-16h වැඩ කළොත් පැය 9යි, විනාඩි 30ක් අඩු වී ශුද්ධ කාලය 8.5h වේ. අමතර පැය 0යි.)
-        if(type === 'work' && net > 510) {
-            ot = net - 510;
-        }
-
-        db[`${m}-${d}`] = { s, e, p: pause, m: net, ot, c: document.getElementById('city').value, t: type };
-        localStorage.setItem('ac_v25_db', JSON.stringify(db));
+        db[`${m}-${d}`] = { s:sT, e:eT, p:pause, m:net, ot, c:city, t:type };
+        localStorage.setItem('ace_v3_db', JSON.stringify(db));
         updateView();
-        alert("Gespeichert!");
+        alert("Daten erfolgreich gespeichert!");
     }
 
-    function generate() {
-        if(pad.isEmpty()) return alert("Unterschrift fehlt!");
-        const sigImg = document.getElementById('pdf-sig-img');
-        sigImg.src = pad.toDataURL(); sigImg.style.display = 'block';
-        html2pdf().from(document.getElementById('pdf-content')).set({
-            margin: 5, filename: `Stundennachweis_${document.getElementById('month').value}.pdf`,
-            html2canvas: { scale: 2 }, jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
-        }).save().then(() => sigImg.style.display = 'none');
+    function exportJSON() {
+        const data = JSON.stringify(db);
+        const blob = new Blob([data], {type: "application/json"});
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        const fileName = `AC_Backup_${document.getElementById('month').value}_${new Date().toLocaleDateString()}.json`;
+        a.href = url; a.download = fileName;
+        a.click();
+        localStorage.setItem('ace_last_b', Date.now());
+        document.getElementById('backup-alert').style.display = 'none';
+    }
+
+    function importJSON(e) {
+        const reader = new FileReader();
+        reader.onload = (event) => {
+            try {
+                const imported = JSON.parse(event.target.result);
+                db = {...db, ...imported};
+                localStorage.setItem('ace_v3_db', JSON.stringify(db));
+                updateView();
+                alert("Daten erfolgreich wiederhergestellt!");
+            } catch (err) {
+                alert("Fehler beim Importieren der Datei!");
+            }
+        };
+        reader.readAsText(e.target.files[0]);
+    }
+
+    function generatePDF() {
+        if(pad.isEmpty()) return alert("Bitte unterschreiben Sie zuerst!");
+        
+        const element = document.querySelector('.dashboard');
+        const opt = {
+            margin: 10,
+            filename: `Stundennachweis_${document.getElementById('month').value}.pdf`,
+            image: { type: 'jpeg', quality: 0.98 },
+            html2canvas: { scale: 2 },
+            jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
+        };
+        
+        html2pdf().set(opt).from(element).save();
     }
 </script>
+
 </body>
 </html>
