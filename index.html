@@ -3,50 +3,57 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>AC ELEKTRO PRO V3.8</title>
+    <title>AC ELEKTRO PRO V4.0</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/signature_pad@4.0.0/dist/signature_pad.umd.min.js"></script>
     
     <style>
-        :root { --brand-green: #2ecc71; --brand-blue: #3498db; --dark: #2c3e50; }
-        body { font-family: Arial, sans-serif; background: #f4f7f6; margin: 0; padding: 5px; display: flex; flex-direction: column; align-items: center; }
+        :root { --brand-green: #27ae60; --brand-blue: #2980b9; --dark: #2c3e50; --danger: #e74c3c; }
+        body { font-family: 'Segoe UI', Arial, sans-serif; background: #ecf0f1; margin: 0; padding: 10px; display: flex; flex-direction: column; align-items: center; }
         
-        /* Input Form Styling */
-        .card { width: 100%; max-width: 500px; background: white; padding: 15px; border-radius: 10px; box-shadow: 0 4px 10px rgba(0,0,0,0.1); margin-bottom: 10px; box-sizing: border-box; }
-        .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+        .card { width: 100%; max-width: 500px; background: white; padding: 20px; border-radius: 15px; box-shadow: 0 10px 25px rgba(0,0,0,0.1); margin-bottom: 20px; box-sizing: border-box; }
+        .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
         .full-width { grid-column: span 2; }
-        label { font-size: 10px; font-weight: bold; color: #7f8c8d; }
-        input, select { padding: 10px; border: 1px solid #ccc; border-radius: 5px; width: 100%; font-size: 14px; box-sizing: border-box; }
+        label { font-size: 11px; font-weight: bold; color: #7f8c8d; display: block; margin-bottom: 4px; }
+        input, select { padding: 12px; border: 1px solid #dcdde1; border-radius: 8px; width: 100%; font-size: 14px; box-sizing: border-box; transition: 0.3s; }
+        input:focus { border-color: var(--brand-blue); outline: none; }
         
-        .sig-container { margin: 10px 0; background: #fff; border: 1px dashed #999; height: 100px; }
+        .sig-wrapper { position: relative; margin-top: 10px; }
+        .sig-container { background: #fff; border: 1px dashed #bdc3c7; height: 120px; border-radius: 8px; }
         canvas { width: 100%; height: 100%; touch-action: none; }
-        
-        .btn-group { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-top: 10px; }
-        button { padding: 12px; border: none; border-radius: 5px; cursor: pointer; font-weight: bold; color: white; font-size: 14px; }
+        .btn-clear-sig { position: absolute; top: 5px; right: 5px; background: var(--danger); font-size: 10px; padding: 5px; }
+
+        .btn-group { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 15px; }
+        button { padding: 14px; border: none; border-radius: 8px; cursor: pointer; font-weight: bold; color: white; font-size: 14px; transition: 0.2s; }
         .btn-save { background: var(--brand-green); }
         .btn-pdf { background: var(--brand-blue); }
+        .btn-reset { background: #95a5a6; grid-column: span 2; margin-top: 5px; }
+        button:active { opacity: 0.8; transform: scale(0.98); }
 
-        /* --- LIVE PREVIEW (සම්පූර්ණ පත්‍රිකාවේ පෙනුම) --- */
-        .preview-wrapper { width: 100%; max-width: 100%; overflow-x: auto; background: #eee; padding: 10px; border-radius: 8px; box-sizing: border-box; }
-        .live-preview-box { width: 210mm; background: white; padding: 15mm; box-shadow: 0 0 10px rgba(0,0,0,0.2); margin: 0 auto; color: black; }
+        /* Preview Scaling for Mobile */
+        .preview-wrapper { width: 100%; overflow-x: auto; background: #bdc3c7; padding: 20px 0; border-radius: 10px; }
+        .live-preview-box { width: 210mm; min-height: 297mm; background: white; padding: 15mm; margin: 0 auto; color: black; box-sizing: border-box; }
         
-        .form-title { font-size: 18px; font-weight: bold; border-bottom: 2px solid #000; margin-bottom: 15px; }
-        .main-table { width: 100%; border-collapse: collapse; border: 1.5px solid black; }
-        .main-table th, .main-table td { border: 1px solid black; padding: 3px; text-align: center; font-size: 11px; height: 18px; }
-        .main-table th { background: #f2f2f2; }
+        .form-title { font-size: 22px; font-weight: bold; border-bottom: 3px solid #000; margin-bottom: 20px; text-transform: uppercase; }
+        .main-table { width: 100%; border-collapse: collapse; border: 2px solid black; }
+        .main-table th, .main-table td { border: 1px solid black; padding: 5px; text-align: center; font-size: 11px; }
+        .main-table th { background: #ecf0f1; font-weight: bold; }
         
-        .summary-grid { display: flex; justify-content: space-between; margin-top: 15px; font-size: 12px; }
-        .line-val { border-bottom: 1px solid black; min-width: 60px; display: inline-block; text-align: center; font-weight: bold; }
+        .summary-grid { display: flex; justify-content: space-between; margin-top: 30px; font-size: 13px; border-top: 1px solid #eee; pt: 10px; }
+        .line-val { border-bottom: 1px solid black; min-width: 70px; display: inline-block; text-align: center; font-weight: bold; }
+        
+        @media (max-width: 600px) {
+            .live-preview-box { transform: scale(0.4); transform-origin: top center; margin-bottom: -180mm; }
+        }
     </style>
 </head>
 <body>
 
 <div class="card">
-    <h2 style="text-align:center; color:var(--brand-green); margin:0 0 10px 0; font-size: 18px;">AC ELEKTRO</h2>
+    <h2 style="text-align:center; color:var(--brand-green); margin:0 0 15px 0;">AC ELEKTRO PRO</h2>
     <div class="grid">
-        <div class="full-width"><label>Name, Vorname</label><input type="text" id="name" oninput="renderForm()"></div>
-        <div><label>Monat / Jahr</label><input type="month" id="month" onchange="renderForm()"></div>
-        <div><label>Tag</label><input type="number" id="day" min="1" max="31"></div>
+        <div class="full-width"><label>Name, Vorname</label><input type="text" id="name" oninput="renderForm()" placeholder="Max Mustermann"></div>
+        <div class="full-width"><label>Datum auswählen</label><input type="date" id="date-picker"></div>
         <div><label>Beginn</label><input type="time" id="start" value="07:00"></div>
         <div><label>Ende</label><input type="time" id="end" value="16:00"></div>
         <div><label>Pause (Min)</label><input type="number" id="pause" value="45"></div>
@@ -54,37 +61,44 @@
             <label>Kategorie</label>
             <select id="type">
                 <option value="work">Arbeit</option>
-                <option value="urlaub">Urlaub</option>
-                <option value="feiertag">Feiertag</option>
-                <option value="krank">Krank</option>
+                <option value="urlaub">Urlaub (8h)</option>
+                <option value="feiertag">Feiertag (8h)</option>
+                <option value="krank">Krank (8h)</option>
             </select>
         </div>
-        <div class="full-width"><label>Einsatzort</label><input type="text" id="city" placeholder="Baustelle"></div>
+        <div class="full-width"><label>Einsatzort / Baustelle</label><input type="text" id="city" placeholder="Berlin, Hauptstraße 1"></div>
     </div>
-    <div class="sig-container"><canvas id="canvas"></canvas></div>
+    
+    <div class="sig-wrapper">
+        <label>Unterschrift</label>
+        <div class="sig-container"><canvas id="canvas"></canvas></div>
+        <button class="btn-clear-sig" onclick="pad.clear()">Löschen</button>
+    </div>
+
     <div class="btn-group">
         <button class="btn-save" onclick="saveData()">Speichern</button>
-        <button class="btn-pdf" onclick="generatePDF()">PDF Erstellen</button>
+        <button class="btn-pdf" onclick="generatePDF()">PDF Export</button>
+        <button class="btn-reset" onclick="clearAllData()">Alle Daten löschen</button>
     </div>
 </div>
 
 <div class="preview-wrapper">
     <div class="live-preview-box" id="capture-area">
-        <div class="form-title">Zeiterfassung / Stundennachweis</div>
-        <div style="font-size: 12px; margin-bottom: 10px;">
-            Name, Vorname: <span id="view-name" class="line-val" style="min-width: 200px;"></span><br>
-            Monat / Jahr: <span id="view-month" class="line-val" style="min-width: 100px; margin-top: 5px;"></span>
+        <div class="form-title">Stundennachweis</div>
+        <div style="font-size: 14px; margin-bottom: 15px;">
+            <strong>Mitarbeiter:</strong> <span id="view-name" class="line-val" style="min-width: 250px;"></span>
+            <strong style="margin-left:20px;">Monat:</strong> <span id="view-month" class="line-val" style="min-width: 120px;"></span>
         </div>
 
         <table class="main-table">
             <thead>
                 <tr>
-                    <th width="30">Tag</th>
-                    <th width="70">Beginn</th>
-                    <th width="70">Ende</th>
-                    <th width="60">Pausen</th>
-                    <th width="80">Arbeits-stunden</th>
-                    <th width="70">Überstd.</th>
+                    <th width="40">Tag</th>
+                    <th>Beginn</th>
+                    <th>Ende</th>
+                    <th>Pause</th>
+                    <th>Netto Std.</th>
+                    <th>Überstd.</th>
                     <th>Einsatzort</th>
                 </tr>
             </thead>
@@ -92,32 +106,30 @@
         </table>
 
         <div class="summary-grid">
-            <div style="line-height: 1.8;">
-                Arbeitsstunden <span class="line-val" id="sum-w"></span><br>
-                Urlaub -Stunden- <span class="line-val" id="sum-u"></span><br>
-                Feiertag -Stunden- <span class="line-val" id="sum-f"></span><br>
-                Krank -Stunden- <span class="line-val" id="sum-k"></span><br>
-                <strong>Stunden insgesamt <span class="line-val" id="sum-t"></span></strong>
+            <div style="line-height: 2;">
+                Arbeit: <span class="line-val" id="sum-w">0.00</span> h<br>
+                Urlaub/Krank/Feiertag: <span class="line-val" id="sum-other">0.00</span> h<br>
+                <strong>Gesamtstunden: <span class="line-val" id="sum-t">0.00</span> h</strong>
             </div>
-            <div style="text-align: center; width: 220px;">
-                <p style="font-size: 9px; margin-bottom: 20px;">Nach 6h Arbeitszeit mind. 1/2h Pause</p>
-                <div style="height: 50px; border-bottom: 1px solid black;"><img id="view-sig" style="max-height: 100%;"></div>
-                <div style="font-size: 11px; margin-top: 5px;">Unterschrift Mitarbeiter</div>
+            <div style="text-align: center; width: 250px;">
+                <p style="font-size: 10px; margin-bottom: 15px;">Gesetzliche Pausenregelungen wurden eingehalten.</p>
+                <div style="height: 60px; border-bottom: 2px solid black;"><img id="view-sig" style="max-height: 100%;"></div>
+                <div style="font-size: 12px; margin-top: 8px;">Unterschrift Mitarbeiter</div>
             </div>
         </div>
     </div>
 </div>
 
 <script>
-    let db = JSON.parse(localStorage.getItem('ace_v38_db')) || {};
+    let db = JSON.parse(localStorage.getItem('ace_v4_db')) || {};
     const canvas = document.getElementById("canvas");
     const pad = new SignaturePad(canvas);
 
     window.onload = () => {
-        const now = new Date();
-        document.getElementById('month').value = now.toISOString().substring(0, 7);
-        renderForm();
+        const today = new Date();
+        document.getElementById('date-picker').value = today.toISOString().split('T')[0];
         resizeCanvas();
+        renderForm();
     };
 
     function resizeCanvas() {
@@ -125,76 +137,98 @@
         canvas.width = canvas.offsetWidth * ratio;
         canvas.height = canvas.offsetHeight * ratio;
         canvas.getContext("2d").scale(ratio, ratio);
+        pad.clear();
     }
 
     function renderForm() {
-        const m = document.getElementById('month').value;
+        const dateVal = document.getElementById('date-picker').value;
+        if(!dateVal) return;
+        
+        const [year, month] = dateVal.split('-');
+        const monthKey = `${year}-${month}`;
+        
         document.getElementById('view-name').innerText = document.getElementById('name').value;
-        document.getElementById('view-month').innerText = m;
+        document.getElementById('view-month').innerText = `${month} / ${year}`;
         
         const body = document.getElementById('table-body');
         body.innerHTML = "";
-        let s = { w:0, u:0, f:0, k:0, ot:0 };
-        const days = new Date(m.split('-')[0], m.split('-')[1], 0).getDate();
+        let s = { w:0, other:0, ot:0 };
+        const daysInMonth = new Date(year, month, 0).getDate();
 
         for(let i=1; i<=31; i++) {
-            const row = (i <= days) ? (db[`${m}-${i}`] || {}) : {};
-            body.innerHTML += `<tr>
+            const row = (i <= daysInMonth) ? (db[`${monthKey}-${i}`] || {}) : { disabled: true };
+            const isWeekend = new Date(year, month-1, i).getDay() % 6 === 0;
+            
+            body.innerHTML += `<tr style="${row.disabled ? 'background:#eee' : ''} ${isWeekend ? 'color:#7f8c8d' : ''}">
                 <td>${i}</td>
                 <td>${row.s || ''}</td>
                 <td>${row.e || ''}</td>
                 <td>${row.p ? row.p+'m' : ''}</td>
                 <td style="font-weight:bold">${row.m ? (row.m/60).toFixed(2) : ''}</td>
                 <td style="color:red">${row.ot ? (row.ot/60).toFixed(2) : ''}</td>
-                <td>${row.c || ''}</td>
+                <td style="font-size:9px">${row.c || ''}</td>
             </tr>`;
+
             if(row.m) {
                 if(row.t === 'work') { s.w += row.m; s.ot += (row.ot || 0); }
-                else if(row.t === 'urlaub') s.u += row.m;
-                else if(row.t === 'feiertag') s.f += row.m;
-                else if(row.t === 'krank') s.k += row.m;
+                else s.other += row.m;
             }
         }
         document.getElementById('sum-w').innerText = (s.w/60).toFixed(2);
-        document.getElementById('sum-u').innerText = (s.u/60).toFixed(2);
-        document.getElementById('sum-f').innerText = (s.f/60).toFixed(2);
-        document.getElementById('sum-k').innerText = (s.k/60).toFixed(2);
-        document.getElementById('sum-t').innerText = ((s.w+s.u+s.f+s.k)/60).toFixed(2);
+        document.getElementById('sum-other').innerText = (s.other/60).toFixed(2);
+        document.getElementById('sum-t').innerText = ((s.w + s.other)/60).toFixed(2);
     }
 
     function saveData() {
-        const m = document.getElementById('month').value, d = document.getElementById('day').value;
-        const sT = document.getElementById('start').value, eT = document.getElementById('end').value;
+        const dateVal = document.getElementById('date-picker').value;
+        if(!dateVal) return alert("Datum wählen!");
+
+        const [y, m, d] = dateVal.split('-');
+        const sT = document.getElementById('start').value;
+        const eT = document.getElementById('end').value;
         const pM = parseInt(document.getElementById('pause').value) || 0;
-        const type = document.getElementById('type').value, city = document.getElementById('city').value;
+        const type = document.getElementById('type').value;
+        const city = document.getElementById('city').value;
 
-        if(!m || !d) return alert("Datum fehlt!");
-
-        const [sh, sm] = sT.split(':').map(Number), [eh, em] = eT.split(':').map(Number);
-        const diff = (eh * 60 + em) - (sh * 60 + sm);
-        let net = diff - pM, ot = 0;
+        let net = 0, ot = 0;
 
         if(type === 'work') {
-            const dow = new Date(`${m}-${d}`).getDay();
-            if(dow === 5 && diff > 300) ot = diff - 300; 
-            else if(net > 510) ot = net - 510;
+            const [sh, sm] = sT.split(':').map(Number);
+            const [eh, em] = eT.split(':').map(Number);
+            
+            let diff = (eh * 60 + em) - (sh * 60 + sm);
+            if(diff <= 0) diff += 1440; // රාත්‍රී වැඩමුරු සඳහා (Night Shift)
+
+            net = diff - pM;
+            if(net > 480) ot = net - 480; // පැය 8කට වඩා වැඩි නම් Overtime
+        } else {
+            net = 480; // Urlaub/Krank සඳහා පැය 8ක් ස්වයංක්‍රීයව ලබා දේ
         }
 
-        db[`${m}-${d}`] = { s:sT, e:eT, p:pM, m:net, ot, c:city, t:type };
-        localStorage.setItem('ace_v38_db', JSON.stringify(db));
+        db[`${y}-${m}-${parseInt(d)}`] = { s:sT, e:eT, p:pM, m:net, ot, c:city, t:type };
+        localStorage.setItem('ace_v4_db', JSON.stringify(db));
         renderForm();
         alert("Gespeichert!");
     }
 
+    function clearAllData() {
+        if(confirm("Möchten Sie wirklich alle Daten löschen?")) {
+            localStorage.removeItem('ace_v4_db');
+            db = {};
+            renderForm();
+        }
+    }
+
     function generatePDF() {
-        if(pad.isEmpty()) return alert("Unterschrift fehlt!");
+        if(pad.isEmpty()) return alert("Bitte unterschreiben!");
         document.getElementById('view-sig').src = pad.toDataURL();
         
         const element = document.getElementById('capture-area');
         const opt = {
-            margin: 0,
-            filename: `Stundennachweis_${document.getElementById('month').value}.pdf`,
-            html2canvas: { scale: 2 },
+            margin: 5,
+            filename: `Stundennachweis_${document.getElementById('view-month').innerText}.pdf`,
+            image: { type: 'jpeg', quality: 0.98 },
+            html2canvas: { scale: 2, useCORS: true },
             jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
         };
         html2pdf().set(opt).from(element).save();
