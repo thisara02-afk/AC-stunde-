@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>AC ELEKTRO STUNDENNACHWEIS V11.0</title>
+    <title>AC ELEKTRO STUNDENNACHWEIS V12.0</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/signature_pad@4.0.0/dist/signature_pad.umd.min.js"></script>
     
@@ -16,8 +16,7 @@
         .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
         .full-width { grid-column: span 2; }
         label { font-size: 12px; font-weight: 600; display: block; margin-bottom: 5px; color: var(--dark); }
-        input, select { padding: 12px; border: 1.5px solid #dfe6e9; border-radius: 8px; width: 100%; font-size: 14px; box-sizing: border-box; transition: 0.3s; }
-        input:focus { border-color: var(--brand-blue); outline: none; }
+        input, select { padding: 12px; border: 1.5px solid #dfe6e9; border-radius: 8px; width: 100%; font-size: 14px; box-sizing: border-box; }
         
         .sig-wrapper { position: relative; margin-top: 15px; border: 2px dashed #b2bec3; border-radius: 10px; background: #fff; }
         .sig-container { height: 120px; }
@@ -28,29 +27,29 @@
         .btn-save { background: var(--brand-green); color: white; }
         .btn-pdf { background: var(--brand-blue); color: white; }
         .btn-reset { background: #636e72; color: white; grid-column: span 2; margin-top: 5px; }
-        button:active { transform: scale(0.98); }
 
-        /* LIVE PREVIEW TABLE (Visible on Screen) */
+        /* LIVE TABLE (Visible on Screen) */
         .live-preview-title { width: 100%; max-width: 800px; font-weight: bold; color: var(--dark); margin-bottom: 10px; font-size: 16px; border-left: 4px solid var(--brand-green); padding-left: 10px; }
         .table-scroll { width: 100%; max-width: 800px; overflow-x: auto; background: white; border-radius: 10px; box-shadow: 0 2px 15px rgba(0,0,0,0.05); margin-bottom: 50px; }
         .live-table { width: 100%; border-collapse: collapse; min-width: 600px; }
         .live-table th, .live-table td { border: 1px solid #eee; padding: 8px; text-align: center; font-size: 12px; }
-        .live-table th { background: #f8f9fa; color: var(--dark); position: sticky; top: 0; }
+        .live-table th { background: #f8f9fa; color: var(--dark); }
 
-        /* PDF CONTAINER (Hidden from UI) */
+        /* PDF EXPORT STYLES (Locked A4) */
         #pdf-export-container { position: absolute; left: -9999px; top: 0; }
-        #pdf-page { width: 794px; background: white; padding: 40px; color: black; box-sizing: border-box; min-height: 1120px; display: flex; flex-direction: column; }
-        .pdf-header { border-bottom: 2.5px solid black; margin-bottom: 20px; }
-        .pdf-header h1 { font-size: 24px; margin: 0 0 10px 0; }
-        .pdf-meta { display: flex; gap: 50px; margin-bottom: 20px; font-size: 14px; }
-        .u-line { border-bottom: 1px solid black; padding: 0 10px; font-weight: bold; }
-        .pdf-main-table { width: 100%; border-collapse: collapse; margin-bottom: 20px; table-layout: fixed; }
-        .pdf-main-table th, .pdf-main-table td { border: 1px solid black; padding: 5px 2px; text-align: center; font-size: 11px; }
-        .pdf-footer { margin-top: auto; display: flex; justify-content: space-between; align-items: flex-end; padding-top: 20px; }
+        #pdf-page { width: 800px; height: 1130px; background: white; padding: 40px; color: black; box-sizing: border-box; display: flex; flex-direction: column; position: relative; }
+        .pdf-header { border-bottom: 2px solid black; margin-bottom: 15px; }
+        .pdf-header h1 { font-size: 24px; margin: 0 0 5px 0; text-align: left; }
+        .pdf-meta { display: flex; gap: 50px; margin-bottom: 15px; font-size: 14px; }
+        .u-line { border-bottom: 1px solid black; padding: 0 10px; font-weight: bold; min-width: 150px; display: inline-block; }
+        .pdf-main-table { width: 100%; border-collapse: collapse; table-layout: fixed; }
+        .pdf-main-table th, .pdf-main-table td { border: 1px solid black; padding: 4px 2px; text-align: center; font-size: 11px; word-wrap: break-word; }
+        .pdf-main-table th { background: #f2f2f2; }
+        .pdf-footer { margin-top: auto; display: flex; justify-content: space-between; align-items: flex-end; padding-bottom: 20px; }
         .pdf-summary { font-size: 14px; line-height: 2.2; }
         .pdf-sig-box { text-align: center; width: 280px; }
-        .pdf-sig-line { border-bottom: 1.5px solid black; height: 80px; margin-bottom: 5px; display: flex; align-items: center; justify-content: center; }
-        .pdf-sig-line img { max-height: 75px; }
+        .pdf-sig-line { border-bottom: 1.5px solid black; height: 70px; margin-bottom: 5px; display: flex; align-items: center; justify-content: center; }
+        .pdf-sig-line img { max-height: 65px; }
     </style>
 </head>
 <body>
@@ -58,8 +57,8 @@
 <div class="card">
     <h2 style="text-align:center; color:var(--brand-green); margin-top:0;">AC ELEKTRO STUNDENNACHWEIS</h2>
     <div class="grid">
-        <div class="full-width"><label>Name, Vorname</label><input type="text" id="name" oninput="refreshTable()" placeholder="Max Mustermann"></div>
-        <div class="full-width"><label>Datum wählen</label><input type="date" id="date-picker" onchange="refreshTable()"></div>
+        <div class="full-width"><label>Name, Vorname</label><input type="text" id="name" oninput="refreshTable()"></div>
+        <div class="full-width"><label>Datum auswählen</label><input type="date" id="date-picker" onchange="refreshTable()"></div>
         <div><label>Beginn</label><input type="time" id="start" value="07:00"></div>
         <div><label>Ende</label><input type="time" id="end" value="16:00"></div>
         <div><label>Pause (Min)</label><input type="number" id="pause" value="30"></div>
@@ -87,13 +86,11 @@
     </div>
 </div>
 
-<div class="live-preview-title">Übersicht (ජීවී දර්ශනය)</div>
+<div class="live-preview-title">Übersicht (Vorschau)</div>
 <div class="table-scroll">
     <table class="live-table">
         <thead>
-            <tr>
-                <th>Tag</th><th>Beginn</th><th>Ende</th><th>Netto</th><th>Typ</th><th>Ort</th>
-            </tr>
+            <tr><th>Tag</th><th>Beginn</th><th>Ende</th><th>Netto</th><th>Kategorie</th><th>Bemerkung</th></tr>
         </thead>
         <tbody id="live-body"></tbody>
     </table>
@@ -103,13 +100,13 @@
     <div id="pdf-page">
         <div class="pdf-header"><h1>MONATLICHER STUNDENNACHWEIS</h1></div>
         <div class="pdf-meta">
-            <div>Mitarbeiter: <span id="p-name" class="u-line" style="min-width:250px;"></span></div>
+            <div>Mitarbeiter: <span id="p-name" class="u-line"></span></div>
             <div>Monat / Jahr: <span id="p-month" class="u-line"></span></div>
         </div>
         <table class="pdf-main-table">
             <thead>
                 <tr>
-                    <th width="30">Tag</th><th width="45">Tag</th><th width="75">Beginn</th>
+                    <th width="35">Tag</th><th width="50">Tag</th><th width="75">Beginn</th>
                     <th width="75">Ende</th><th width="55">Pause</th><th width="75">Netto Std.</th>
                     <th width="75">Überstd.</th><th>Bemerkung</th>
                 </tr>
@@ -121,7 +118,7 @@
                 Gesamt Arbeitsstunden: <span id="p-sum-w" style="font-weight:bold;">0.00</span> h<br>
                 Urlaub / Krank / Feiertag: <span id="p-sum-o" style="font-weight:bold;">0.00</span> h<br>
                 Überstunden (+): <span id="p-sum-ot" style="font-weight:bold; color:red;">0.00</span> h<br>
-                <hr style="border:0; border-top:1px solid black; margin:5px 0;">
+                <hr style="border:0; border-top:1.5px solid black; margin:5px 0;">
                 <strong style="font-size:16px;">GESAMTSUMME: <span id="p-sum-total">0.00</span> h</strong>
             </div>
             <div class="pdf-sig-box">
@@ -133,7 +130,7 @@
 </div>
 
 <script>
-    let db = JSON.parse(localStorage.getItem('ace_v11_db')) || {};
+    let db = JSON.parse(localStorage.getItem('ace_v12_db')) || {};
     const canvas = document.querySelector("canvas");
     const pad = new SignaturePad(canvas);
 
@@ -149,6 +146,7 @@
         canvas.width = canvas.offsetWidth * ratio;
         canvas.height = canvas.offsetHeight * ratio;
         canvas.getContext("2d").scale(ratio, ratio);
+        pad.clear();
     }
 
     function refreshTable() {
@@ -176,7 +174,6 @@
             let style = row.disabled ? 'color:transparent;' : (dIdx === 0 || dIdx === 6 ? 'background:#f9f9f9;' : '');
             if(row.t === 'feiertag' || row.t === 'urlaub') style = 'background:#fff9c4; font-weight:bold;';
 
-            // PDF Table
             pdfBody.innerHTML += `<tr style="${style}">
                 <td>${i}</td><td>${dIdx !== null ? weekDays[dIdx] : ''}</td>
                 <td>${row.s || ''}</td><td>${row.e || ''}</td><td>${row.p ? row.p+'m' : ''}</td>
@@ -184,7 +181,6 @@
                 <td style="text-align:left; padding-left:5px; font-size:10px;">${row.c || ''}</td>
             </tr>`;
 
-            // Live View Table (Only current month)
             if(!row.disabled && row.m) {
                 liveBody.innerHTML += `<tr style="${style}">
                     <td>${i} (${weekDays[dIdx]})</td><td>${row.s}</td><td>${row.e}</td>
@@ -197,8 +193,7 @@
         document.getElementById('p-sum-w').innerText = (s.w/60).toFixed(2);
         document.getElementById('p-sum-o').innerText = (s.extra/60).toFixed(2);
         document.getElementById('p-sum-ot').innerText = (s.ot/60).toFixed(2);
-        const total = (s.w + s.ot + s.extra)/60;
-        document.getElementById('p-sum-total').innerText = total.toFixed(2);
+        document.getElementById('p-sum-total').innerText = ((s.w + s.ot + s.extra)/60).toFixed(2);
     }
 
     function saveToLocal() {
@@ -223,25 +218,25 @@
         } else { net = (dayOfWeek === 0 || dayOfWeek === 6) ? 0 : target; }
 
         db[`${y}-${m}-${parseInt(d)}`] = { s:sT, e:eT, p:pM, m:net, ot, c:city, t:type };
-        localStorage.setItem('ace_v11_db', JSON.stringify(db));
+        localStorage.setItem('ace_v12_db', JSON.stringify(db));
         refreshTable();
-        alert("Gespeichert!");
+        alert("Erfolgreich gespeichert!");
     }
 
-    function resetStorage() { if(confirm("Alle Daten löschen?")) { localStorage.removeItem('ace_v11_db'); db={}; refreshTable(); } }
+    function resetStorage() { if(confirm("Möchten Sie wirklich alle Daten löschen?")) { localStorage.removeItem('ace_v12_db'); db={}; refreshTable(); } }
 
     async function generatePDF() {
-        if(pad.isEmpty()) return alert("Bitte unterschreiben!");
+        if(pad.isEmpty()) return alert("Bitte unterschreiben Sie zuerst!");
         document.getElementById('p-sig').src = pad.toDataURL();
         const element = document.getElementById('pdf-page');
         const opt = {
             margin: 0,
             filename: `Stundennachweis_AC_Elektro.pdf`,
             image: { type: 'jpeg', quality: 1.0 },
-            html2canvas: { scale: 2, useCORS: true, scrollY: 0 },
+            html2canvas: { scale: 2, useCORS: true, scrollY: 0, windowWidth: 800 },
             jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
         };
-        setTimeout(() => { html2pdf().set(opt).from(element).save(); }, 1000);
+        setTimeout(() => { html2pdf().set(opt).from(element).save(); }, 800);
     }
 </script>
 </body>
