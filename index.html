@@ -11,13 +11,16 @@
         :root { --brand-green: #27ae60; --brand-blue: #2980b9; --danger: #e74c3c; --dark: #2c3e50; }
         body { font-family: 'Segoe UI', Arial, sans-serif; background: #f4f7f6; margin: 0; padding: 10px; display: flex; flex-direction: column; align-items: center; }
         
-        /* FORM DESIGN */
         .card { width: 100%; max-width: 500px; background: white; padding: 20px; border-radius: 12px; box-shadow: 0 4px 20px rgba(0,0,0,0.1); margin-bottom: 20px; box-sizing: border-box; }
         .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
         .full-width { grid-column: span 2; }
         label { font-size: 13px; font-weight: 600; display: block; margin-bottom: 4px; color: var(--dark); }
         input, select { padding: 12px; border: 1.5px solid #dcdde1; border-radius: 6px; width: 100%; font-size: 14px; box-sizing: border-box; }
         
+        /* Live Summary Table inside Form */
+        .live-status { margin-top: 15px; padding: 10px; background: #ebf5fb; border-radius: 8px; border: 1px solid #aed6f1; }
+        .live-status div { display: flex; justify-content: space-between; font-size: 14px; margin-bottom: 5px; color: var(--dark); }
+
         .sig-wrapper { position: relative; margin-top: 15px; border: 2px dashed #b2bec3; border-radius: 8px; background: #fff; }
         .sig-container { height: 130px; }
         canvas { width: 100%; height: 100%; touch-action: none; }
@@ -28,25 +31,23 @@
         .btn-pdf { background: var(--brand-blue); }
         .btn-reset { background: #7f8c8d; grid-column: span 2; margin-top: 5px; }
 
-        /* LIVE PREVIEW TABLE */
         .preview-header { width: 100%; max-width: 850px; font-weight: bold; margin: 15px 0 10px; color: var(--brand-blue); text-align: left; border-left: 5px solid var(--brand-green); padding-left: 10px; }
         .scroll-box { width: 100%; max-width: 850px; overflow-x: auto; background: white; border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.05); margin-bottom: 30px; }
         table { width: 100%; border-collapse: collapse; min-width: 650px; }
         th, td { border: 1px solid #eee; padding: 10px 5px; text-align: center; font-size: 12px; }
         th { background: #f8f9fa; color: var(--dark); }
 
-        /* PDF LAYOUT (HIDDEN) */
+        /* PDF HIDDEN */
         #pdf-container { position: absolute; left: -9999px; top: 0; }
         #pdf-page { width: 794px; height: 1120px; background: white; padding: 40px; color: black; box-sizing: border-box; display: flex; flex-direction: column; }
         .pdf-title { font-size: 24px; margin: 0 0 15px 0; border-bottom: 2px solid black; padding-bottom: 5px; text-align: left; }
         .pdf-meta { display: flex; justify-content: space-between; margin-bottom: 15px; font-weight: bold; font-size: 14px; }
         .pdf-table { width: 100%; border-collapse: collapse; table-layout: fixed; }
         .pdf-table th, .pdf-table td { border: 1px solid black; padding: 5px 2px; text-align: center; font-size: 11px; }
-        .pdf-footer { margin-top: auto; display: flex; justify-content: space-between; align-items: flex-end; padding-top: 20px; border-top: 1px solid black; }
-        .pdf-summary { line-height: 2; font-size: 14px; }
-        .pdf-sig-area { text-align: center; width: 250px; }
-        .pdf-sig-line { border-bottom: 1.5px solid black; height: 80px; margin-bottom: 5px; display: flex; align-items: center; justify-content: center; }
-        .pdf-sig-line img { max-height: 75px; }
+        .pdf-footer { margin-top: auto; display: flex; justify-content: space-between; align-items: flex-end; padding-top: 20px; }
+        .pdf-summary-box { line-height: 1.8; font-size: 14px; }
+        .pdf-sig-area { text-align: center; width: 250px; border-top: 1px solid black; padding-top: 5px; }
+        .pdf-sig-img { max-height: 60px; margin-bottom: 5px; }
     </style>
 </head>
 <body>
@@ -56,12 +57,12 @@
     <div class="grid">
         <div class="full-width"><label>Name, Vorname</label><input type="text" id="name" oninput="refreshUI()"></div>
         <div class="full-width"><label>Datum auswählen</label><input type="date" id="date-picker" onchange="refreshUI()"></div>
-        <div><label>Beginn</label><input type="time" id="start" value="07:00"></div>
-        <div><label>Ende</label><input type="time" id="end" value="16:00"></div>
-        <div><label>Pause (Min)</label><input type="number" id="pause" value="30"></div>
+        <div><label>Beginn</label><input type="time" id="start" value="07:00" oninput="refreshUI()"></div>
+        <div><label>Ende</label><input type="time" id="end" value="16:00" oninput="refreshUI()"></div>
+        <div><label>Pause (Min)</label><input type="number" id="pause" value="30" oninput="refreshUI()"></div>
         <div>
             <label>Kategorie</label>
-            <select id="type">
+            <select id="type" onchange="refreshUI()">
                 <option value="work">Arbeitstag</option>
                 <option value="feiertag">Feiertag</option>
                 <option value="urlaub">Urlaub</option>
@@ -69,6 +70,12 @@
             </select>
         </div>
         <div class="full-width"><label>Bemerkung / Einsatzort</label><input type="text" id="city"></div>
+    </div>
+
+    <div class="live-status">
+        <div style="border-bottom: 1px solid #ccc; margin-bottom: 8px; font-weight: bold;">Monats-Statistik (Aktuell)</div>
+        <div>Gesamt Netto: <span id="live-net">0.00</span> h</div>
+        <div>Überstunden: <span id="live-ot" style="color:red;">0.00</span> h</div>
     </div>
     
     <div class="sig-wrapper">
@@ -83,7 +90,7 @@
     </div>
 </div>
 
-<div class="preview-header">Monatsübersicht (Vorschau)</div>
+<div class="preview-header">Vorschau (Alle Einträge)</div>
 <div class="scroll-box">
     <table>
         <thead>
@@ -104,28 +111,28 @@
             <thead>
                 <tr>
                     <th width="35">Tag</th><th width="45">Tag</th><th width="70">Beginn</th><th width="70">Ende</th>
-                    <th width="50">Pause</th><th width="70">Netto Std.</th><th width="70">Überstd.</th><th>Bemerkung</th>
+                    <th width="50">Pause</th><th width="70">Netto Std.</th><th width="70">Überstd.</th><th>Einsatzort / Bemerkung</th>
                 </tr>
             </thead>
             <tbody id="pdf-out-body"></tbody>
         </table>
         <div class="pdf-footer">
-            <div class="pdf-summary">
-                Gesamt Arbeitsstunden: <span id="sum-w" style="font-weight:bold;">0.00</span> h<br>
-                Urlaub / Feiertag / Krank: <span id="sum-o" style="font-weight:bold;">0.00</span> h<br>
-                Überstunden (+): <span id="sum-ot" style="font-weight:bold; color:red;">0.00</span> h<br>
-                <strong style="font-size:16px;">GESAMTSUMME: <span id="sum-total">0.00</span> h</strong>
+            <div class="pdf-summary-box">
+                Gesamt Arbeitsstunden: <strong id="sum-w">0.00</strong> h<br>
+                Urlaub / Krank / Feiertag: <strong id="sum-o">0.00</strong> h<br>
+                Überstunden (+): <strong id="sum-ot" style="color:red;">0.00</strong> h<br>
+                <span style="font-size:16px;">GESAMTSUMME: <strong id="sum-total">0.00</strong> h</span>
             </div>
             <div class="pdf-sig-area">
-                <div class="pdf-sig-line"><img id="pdf-sig-img" src=""></div>
-                <div style="font-size:12px; font-weight:bold;">Unterschrift des Mitarbeiters</div>
+                <img id="pdf-sig-img" class="pdf-sig-img" src="">
+                <div style="font-size:11px; font-weight:bold;">Unterschrift des Mitarbeiters</div>
             </div>
         </div>
     </div>
 </div>
 
 <script>
-    let db = JSON.parse(localStorage.getItem('ace_v15_db')) || {};
+    let db = JSON.parse(localStorage.getItem('ace_v16_db')) || {};
     const canvas = document.querySelector("canvas");
     const pad = new SignaturePad(canvas);
 
@@ -166,7 +173,7 @@
             const row = (i <= daysInMonth) ? (db[key] || {}) : { empty: true };
 
             let style = row.empty ? 'color:transparent;' : (dName === "Sa" || dName === "So" ? 'background:#f9f9f9;' : '');
-            if(row.t === 'urlaub' || row.t === 'feiertag' || row.t === 'krank') style = 'background:#fff9c4; font-weight:bold;';
+            if(row.t && row.t !== 'work') style = 'background:#fff9c4;';
 
             const rowHtml = `<tr style="${style}">
                 <td>${i}</td><td>${dName}</td><td>${row.s || ''}</td><td>${row.e || ''}</td>
@@ -177,7 +184,7 @@
             const pdfRowHtml = `<tr style="${style}">
                 <td>${i}</td><td>${dName}</td><td>${row.s || ''}</td><td>${row.e || ''}</td><td>${row.p ? row.p+'m' : ''}</td>
                 <td>${row.m ? (row.m/60).toFixed(2) : ''}</td><td style="color:red;">${row.ot ? (row.ot/60).toFixed(2) : ''}</td>
-                <td>${row.c || ''}</td>
+                <td style="text-align:left;">${row.c || ''}</td>
             </tr>`;
 
             if(i <= daysInMonth) {
@@ -189,21 +196,30 @@
                 }
             }
         }
-        document.getElementById('sum-w').innerText = (s.w/60).toFixed(2);
+        
+        // Updates the Live Box and PDF Totals
+        const netTotal = (s.w/60).toFixed(2);
+        const otTotal = (s.ot/60).toFixed(2);
+        const grandTotal = ((s.w + s.ot + s.ex)/60).toFixed(2);
+
+        document.getElementById('live-net').innerText = netTotal;
+        document.getElementById('live-ot').innerText = otTotal;
+        
+        document.getElementById('sum-w').innerText = netTotal;
         document.getElementById('sum-o').innerText = (s.ex/60).toFixed(2);
-        document.getElementById('sum-ot').innerText = (s.ot/60).toFixed(2);
-        document.getElementById('sum-total').innerText = ((s.w + s.ot + s.ex)/60).toFixed(2);
+        document.getElementById('sum-ot').innerText = otTotal;
+        document.getElementById('sum-total').innerText = grandTotal;
     }
 
     function saveToDB() {
         const dVal = document.getElementById('date-picker').value;
-        if(!dVal) return alert("Bitte wählen Sie ein Datum!");
+        if(!dVal) return alert("Datum wählen!");
         const [y, m, d] = dVal.split('-');
         const s = document.getElementById('start').value, e = document.getElementById('end').value, p = parseInt(document.getElementById('pause').value) || 0;
         const type = document.getElementById('type').value, city = document.getElementById('city').value;
         const dayIdx = new Date(y, m-1, d).getDay();
 
-        let target = (dayIdx === 5) ? 300 : (dayIdx === 0 || dayIdx === 6 ? 0 : 510);
+        let target = (dayIdx === 5) ? 300 : (dayIdx === 0 || dayIdx === 6 ? 0 : 510); // Target hours
         let net = 0, ot = 0;
 
         if(type === 'work') {
@@ -215,21 +231,21 @@
         } else { net = (dayIdx === 0 || dayIdx === 6) ? 0 : target; }
 
         db[`${y}-${m}-${parseInt(d)}`] = { s, e, p, m:net, ot, c:city, t:type };
-        localStorage.setItem('ace_v15_db', JSON.stringify(db));
+        localStorage.setItem('ace_v16_db', JSON.stringify(db));
         refreshUI();
-        alert("Daten erfolgreich gespeichert!");
+        alert("Daten gespeichert!");
     }
 
-    function resetDB() { if(confirm("Möchten Sie wirklich alle Daten löschen?")) { localStorage.removeItem('ace_v15_db'); db={}; refreshUI(); } }
+    function resetDB() { if(confirm("Löschen?")) { localStorage.removeItem('ace_v16_db'); db={}; refreshUI(); } }
 
     async function generatePDF() {
-        if(pad.isEmpty()) return alert("Bitte unterschreiben Sie zuerst!");
+        if(pad.isEmpty()) return alert("Unterschrift fehlt!");
         document.getElementById('pdf-sig-img').src = pad.toDataURL();
         const element = document.getElementById('pdf-page');
         const opt = {
-            margin: 0, filename: 'AC_Elektro_Stundennachweis.pdf',
+            margin: 0, filename: 'Stundennachweis.pdf',
             image: { type: 'jpeg', quality: 1.0 },
-            html2canvas: { scale: 2, useCORS: true, scrollY: 0 },
+            html2canvas: { scale: 2 },
             jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
         };
         setTimeout(() => { html2pdf().set(opt).from(element).save(); }, 700);
