@@ -3,51 +3,49 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>AC ELEKTRO PRO V3.6</title>
+    <title>AC ELEKTRO PRO V3.8</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/signature_pad@4.0.0/dist/signature_pad.umd.min.js"></script>
     
     <style>
         :root { --brand-green: #2ecc71; --brand-blue: #3498db; --dark: #2c3e50; }
-        body { font-family: 'Segoe UI', Arial, sans-serif; background: #f4f7f6; margin: 0; padding: 10px; display: flex; flex-direction: column; align-items: center; }
+        body { font-family: Arial, sans-serif; background: #f4f7f6; margin: 0; padding: 5px; display: flex; flex-direction: column; align-items: center; }
         
-        /* App UI */
-        .card { width: 100%; max-width: 500px; background: white; padding: 15px; border-radius: 12px; box-shadow: 0 5px 15px rgba(0,0,0,0.1); border-top: 5px solid var(--brand-green); box-sizing: border-box; margin-bottom: 15px; }
+        /* Input Form Styling */
+        .card { width: 100%; max-width: 500px; background: white; padding: 15px; border-radius: 10px; box-shadow: 0 4px 10px rgba(0,0,0,0.1); margin-bottom: 10px; box-sizing: border-box; }
         .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
         .full-width { grid-column: span 2; }
-        label { font-size: 10px; font-weight: bold; color: #7f8c8d; text-transform: uppercase; display: block; }
-        input, select { padding: 10px; border: 1px solid #ddd; border-radius: 6px; width: 100%; font-size: 15px; margin-top: 4px; box-sizing: border-box; }
+        label { font-size: 10px; font-weight: bold; color: #7f8c8d; }
+        input, select { padding: 10px; border: 1px solid #ccc; border-radius: 5px; width: 100%; font-size: 14px; box-sizing: border-box; }
         
-        .sig-container { margin: 15px 0; background: #fff; border: 1px dashed #aaa; border-radius: 8px; height: 100px; position: relative; }
+        .sig-container { margin: 10px 0; background: #fff; border: 1px dashed #999; height: 100px; }
         canvas { width: 100%; height: 100%; touch-action: none; }
         
-        .btn-group { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 10px; }
-        button { padding: 14px; border: none; border-radius: 8px; cursor: pointer; font-weight: bold; color: white; font-size: 14px; }
+        .btn-group { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-top: 10px; }
+        button { padding: 12px; border: none; border-radius: 5px; cursor: pointer; font-weight: bold; color: white; font-size: 14px; }
         .btn-save { background: var(--brand-green); }
         .btn-pdf { background: var(--brand-blue); }
-        .btn-clear { background: #95a5a6; padding: 5px 10px; font-size: 10px; margin-top: 5px; width: auto; }
 
-        /* --- LIVE TABLE (පිරවන විටම පෙනෙන වගුව) --- */
-        .live-preview { width: 100%; max-width: 500px; background: white; padding: 10px; border-radius: 12px; box-shadow: 0 5px 15px rgba(0,0,0,0.05); overflow-x: auto; }
-        .live-preview h3 { font-size: 14px; color: var(--dark); margin: 5px 0 10px 5px; border-left: 4px solid var(--brand-green); padding-left: 8px; }
-        table.preview-table { width: 100%; border-collapse: collapse; font-size: 11px; min-width: 400px; }
-        table.preview-table th, table.preview-table td { border-bottom: 1px solid #eee; padding: 8px; text-align: center; }
-        table.preview-table th { background: #f8f9fa; color: #888; }
-        .ot-badge { color: #e67e22; font-weight: bold; }
-
-        /* PDF Layout (Hidden) */
-        #pdf-template { display: none; width: 210mm; padding: 20mm; background: white; color: black; }
-        .pdf-table { width: 100%; border-collapse: collapse; margin-top: 15px; }
-        .pdf-table th, .pdf-table td { border: 1px solid black; padding: 5px; text-align: center; font-size: 11px; }
+        /* --- LIVE PREVIEW (සම්පූර්ණ පත්‍රිකාවේ පෙනුම) --- */
+        .preview-wrapper { width: 100%; max-width: 100%; overflow-x: auto; background: #eee; padding: 10px; border-radius: 8px; box-sizing: border-box; }
+        .live-preview-box { width: 210mm; background: white; padding: 15mm; box-shadow: 0 0 10px rgba(0,0,0,0.2); margin: 0 auto; color: black; }
+        
+        .form-title { font-size: 18px; font-weight: bold; border-bottom: 2px solid #000; margin-bottom: 15px; }
+        .main-table { width: 100%; border-collapse: collapse; border: 1.5px solid black; }
+        .main-table th, .main-table td { border: 1px solid black; padding: 3px; text-align: center; font-size: 11px; height: 18px; }
+        .main-table th { background: #f2f2f2; }
+        
+        .summary-grid { display: flex; justify-content: space-between; margin-top: 15px; font-size: 12px; }
+        .line-val { border-bottom: 1px solid black; min-width: 60px; display: inline-block; text-align: center; font-weight: bold; }
     </style>
 </head>
 <body>
 
 <div class="card">
-    <h2 style="color:var(--brand-green); margin:0 0 10px 0; text-align:center;">AC ELEKTRO</h2>
+    <h2 style="text-align:center; color:var(--brand-green); margin:0 0 10px 0; font-size: 18px;">AC ELEKTRO</h2>
     <div class="grid">
-        <div class="full-width"><label>Name, Vorname</label><input type="text" id="name" placeholder="Max Mustermann"></div>
-        <div><label>Monat / Jahr</label><input type="month" id="month" onchange="renderLiveTable()"></div>
+        <div class="full-width"><label>Name, Vorname</label><input type="text" id="name" oninput="renderForm()"></div>
+        <div><label>Monat / Jahr</label><input type="month" id="month" onchange="renderForm()"></div>
         <div><label>Tag</label><input type="number" id="day" min="1" max="31"></div>
         <div><label>Beginn</label><input type="time" id="start" value="07:00"></div>
         <div><label>Ende</label><input type="time" id="end" value="16:00"></div>
@@ -61,61 +59,64 @@
                 <option value="krank">Krank</option>
             </select>
         </div>
-        <div class="full-width"><label>Einsatzort / Projekt</label><input type="text" id="city" placeholder="Ort"></div>
+        <div class="full-width"><label>Einsatzort</label><input type="text" id="city" placeholder="Baustelle"></div>
     </div>
     <div class="sig-container"><canvas id="canvas"></canvas></div>
-    <button class="btn-clear" onclick="pad.clear()">Unterschrift löschen</button>
-
     <div class="btn-group">
-        <button class="btn-save" onclick="saveEntry()">Speichern</button>
+        <button class="btn-save" onclick="saveData()">Speichern</button>
         <button class="btn-pdf" onclick="generatePDF()">PDF Erstellen</button>
     </div>
 </div>
 
-<div class="live-preview">
-    <h3>Monatsübersicht (Vorschau)</h3>
-    <table class="preview-table">
-        <thead>
-            <tr>
-                <th>Tag</th>
-                <th>Zeitraum</th>
-                <th>Netto</th>
-                <th>Überstd.</th>
-                <th>Ort</th>
-            </tr>
-        </thead>
-        <tbody id="live-body">
-            </tbody>
-    </table>
-</div>
+<div class="preview-wrapper">
+    <div class="live-preview-box" id="capture-area">
+        <div class="form-title">Zeiterfassung / Stundennachweis</div>
+        <div style="font-size: 12px; margin-bottom: 10px;">
+            Name, Vorname: <span id="view-name" class="line-val" style="min-width: 200px;"></span><br>
+            Monat / Jahr: <span id="view-month" class="line-val" style="min-width: 100px; margin-top: 5px;"></span>
+        </div>
 
-<div id="pdf-template">
-    <h1 style="border-bottom: 2px solid #000; padding-bottom: 10px;">Stundennachweis</h1>
-    <p>Name: <strong id="pdf-name"></strong> | Monat: <strong id="pdf-month"></strong></p>
-    <table class="pdf-table">
-        <thead>
-            <tr><th>Tag</th><th>Beginn</th><th>Ende</th><th>Pause</th><th>Arbeitsstd.</th><th>Überstd.</th><th>Ort</th></tr>
-        </thead>
-        <tbody id="pdf-body"></tbody>
-    </table>
-    <div style="margin-top: 30px; display: flex; justify-content: space-between;">
-        <div>Gesamt Arbeitsstd: <strong id="pdf-total"></strong> h</div>
-        <div style="text-align:center; border-top:1px solid #000; width:200px; margin-top:40px;">
-            <img id="pdf-sig-img" style="max-height:50px;"><br>Unterschrift
+        <table class="main-table">
+            <thead>
+                <tr>
+                    <th width="30">Tag</th>
+                    <th width="70">Beginn</th>
+                    <th width="70">Ende</th>
+                    <th width="60">Pausen</th>
+                    <th width="80">Arbeits-stunden</th>
+                    <th width="70">Überstd.</th>
+                    <th>Einsatzort</th>
+                </tr>
+            </thead>
+            <tbody id="table-body"></tbody>
+        </table>
+
+        <div class="summary-grid">
+            <div style="line-height: 1.8;">
+                Arbeitsstunden <span class="line-val" id="sum-w"></span><br>
+                Urlaub -Stunden- <span class="line-val" id="sum-u"></span><br>
+                Feiertag -Stunden- <span class="line-val" id="sum-f"></span><br>
+                Krank -Stunden- <span class="line-val" id="sum-k"></span><br>
+                <strong>Stunden insgesamt <span class="line-val" id="sum-t"></span></strong>
+            </div>
+            <div style="text-align: center; width: 220px;">
+                <p style="font-size: 9px; margin-bottom: 20px;">Nach 6h Arbeitszeit mind. 1/2h Pause</p>
+                <div style="height: 50px; border-bottom: 1px solid black;"><img id="view-sig" style="max-height: 100%;"></div>
+                <div style="font-size: 11px; margin-top: 5px;">Unterschrift Mitarbeiter</div>
+            </div>
         </div>
     </div>
 </div>
 
 <script>
-    let db = JSON.parse(localStorage.getItem('ace_v36_db')) || {};
+    let db = JSON.parse(localStorage.getItem('ace_v38_db')) || {};
     const canvas = document.getElementById("canvas");
     const pad = new SignaturePad(canvas);
 
     window.onload = () => {
         const now = new Date();
         document.getElementById('month').value = now.toISOString().substring(0, 7);
-        document.getElementById('day').value = now.getDate();
-        renderLiveTable();
+        renderForm();
         resizeCanvas();
     };
 
@@ -126,45 +127,52 @@
         canvas.getContext("2d").scale(ratio, ratio);
     }
 
-    // සජීවීව වගුව පෙන්වීමේ function එක
-    function renderLiveTable() {
-        const selectedMonth = document.getElementById('month').value;
-        const body = document.getElementById('live-body');
+    function renderForm() {
+        const m = document.getElementById('month').value;
+        document.getElementById('view-name').innerText = document.getElementById('name').value;
+        document.getElementById('view-month').innerText = m;
+        
+        const body = document.getElementById('table-body');
         body.innerHTML = "";
-        
-        // එම මාසයට අදාළ දත්ත පමණක් පෙරා ගනී
-        const entries = Object.keys(db).filter(k => k.startsWith(selectedMonth)).sort();
-        
-        if (entries.length === 0) {
-            body.innerHTML = "<tr><td colspan='5' style='color:#999;'>Keine Daten für diesen Monat</td></tr>";
-            return;
-        }
+        let s = { w:0, u:0, f:0, k:0, ot:0 };
+        const days = new Date(m.split('-')[0], m.split('-')[1], 0).getDate();
 
-        entries.forEach(key => {
-            const row = db[key];
-            const day = key.split('-')[2];
+        for(let i=1; i<=31; i++) {
+            const row = (i <= days) ? (db[`${m}-${i}`] || {}) : {};
             body.innerHTML += `<tr>
-                <td>${day}</td>
-                <td>${row.s} - ${row.e}</td>
-                <td style="font-weight:bold">${(row.net/60).toFixed(2)}h</td>
-                <td class="ot-badge">${row.ot > 0 ? (row.ot/60).toFixed(2)+'h' : '-'}</td>
-                <td>${row.city || '-'}</td>
+                <td>${i}</td>
+                <td>${row.s || ''}</td>
+                <td>${row.e || ''}</td>
+                <td>${row.p ? row.p+'m' : ''}</td>
+                <td style="font-weight:bold">${row.m ? (row.m/60).toFixed(2) : ''}</td>
+                <td style="color:red">${row.ot ? (row.ot/60).toFixed(2) : ''}</td>
+                <td>${row.c || ''}</td>
             </tr>`;
-        });
+            if(row.m) {
+                if(row.t === 'work') { s.w += row.m; s.ot += (row.ot || 0); }
+                else if(row.t === 'urlaub') s.u += row.m;
+                else if(row.t === 'feiertag') s.f += row.m;
+                else if(row.t === 'krank') s.k += row.m;
+            }
+        }
+        document.getElementById('sum-w').innerText = (s.w/60).toFixed(2);
+        document.getElementById('sum-u').innerText = (s.u/60).toFixed(2);
+        document.getElementById('sum-f').innerText = (s.f/60).toFixed(2);
+        document.getElementById('sum-k').innerText = (s.k/60).toFixed(2);
+        document.getElementById('sum-t').innerText = ((s.w+s.u+s.f+s.k)/60).toFixed(2);
     }
 
-    function saveEntry() {
-        const m = document.getElementById('month').value;
-        const d = document.getElementById('day').value;
-        const s = document.getElementById('start').value, e = document.getElementById('end').value;
-        const p = parseInt(document.getElementById('pause').value) || 0;
+    function saveData() {
+        const m = document.getElementById('month').value, d = document.getElementById('day').value;
+        const sT = document.getElementById('start').value, eT = document.getElementById('end').value;
+        const pM = parseInt(document.getElementById('pause').value) || 0;
         const type = document.getElementById('type').value, city = document.getElementById('city').value;
 
-        if(!m || !d) return alert("Datum wählen!");
+        if(!m || !d) return alert("Datum fehlt!");
 
-        const [sh, sm] = s.split(':').map(Number), [eh, em] = e.split(':').map(Number);
+        const [sh, sm] = sT.split(':').map(Number), [eh, em] = eT.split(':').map(Number);
         const diff = (eh * 60 + em) - (sh * 60 + sm);
-        let net = diff - p, ot = 0;
+        let net = diff - pM, ot = 0;
 
         if(type === 'work') {
             const dow = new Date(`${m}-${d}`).getDay();
@@ -172,38 +180,24 @@
             else if(net > 510) ot = net - 510;
         }
 
-        db[`${m}-${d}`] = { s, e, p, net, ot, city, type };
-        localStorage.setItem('ace_v36_db', JSON.stringify(db));
-        renderLiveTable(); // Save කළ සැණින් වගුව update වේ
+        db[`${m}-${d}`] = { s:sT, e:eT, p:pM, m:net, ot, c:city, t:type };
+        localStorage.setItem('ace_v38_db', JSON.stringify(db));
+        renderForm();
         alert("Gespeichert!");
     }
 
     function generatePDF() {
         if(pad.isEmpty()) return alert("Unterschrift fehlt!");
-        const m = document.getElementById('month').value;
-        document.getElementById('pdf-name').innerText = document.getElementById('name').value || "---";
-        document.getElementById('pdf-month').innerText = m;
+        document.getElementById('view-sig').src = pad.toDataURL();
         
-        const body = document.getElementById('pdf-body');
-        body.innerHTML = "";
-        let total = 0;
-        const days = new Date(m.split('-')[0], m.split('-')[1], 0).getDate();
-
-        for(let i=1; i<=31; i++) {
-            const row = (i <= days) ? (db[`${m}-${i}`] || {}) : null;
-            if(row) {
-                body.innerHTML += `<tr><td>${i}</td><td>${row.s||''}</td><td>${row.e||''}</td><td>${row.p||''}</td><td>${row.net?(row.net/60).toFixed(2):''}</td><td>${row.ot?(row.ot/60).toFixed(2):''}</td><td>${row.city||''}</td></tr>`;
-                total += (row.net || 0);
-            } else {
-                body.innerHTML += `<tr><td>${i}</td><td></td><td></td><td></td><td></td><td></td><td></td></tr>`;
-            }
-        }
-        document.getElementById('pdf-total').innerText = (total/60).toFixed(2);
-        document.getElementById('pdf-sig-img').src = pad.toDataURL();
-
-        const element = document.getElementById('pdf-template');
-        element.style.display = 'block';
-        html2pdf().from(element).set({ margin: 10, filename: `Report_${m}.pdf`, jsPDF: { format: 'a4' } }).save().then(() => element.style.display='none');
+        const element = document.getElementById('capture-area');
+        const opt = {
+            margin: 0,
+            filename: `Stundennachweis_${document.getElementById('month').value}.pdf`,
+            html2canvas: { scale: 2 },
+            jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
+        };
+        html2pdf().set(opt).from(element).save();
     }
 </script>
 </body>
