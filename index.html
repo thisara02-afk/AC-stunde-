@@ -3,93 +3,106 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>AC ELEKTRO - Zeiterfassung v18.0</title>
+    <title>AC ELEKTRO - Zeiterfassung v20.0</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/signature_pad@4.0.0/dist/signature_pad.umd.min.js"></script>
     
     <style>
-        :root { --brand-green: #4db34d; --brand-blue: #0d6efd; }
-        body { font-family: Arial, sans-serif; background: #f0f2f5; margin: 0; padding: 10px; display: flex; flex-direction: column; align-items: center; }
+        :root { --brand-green: #4db34d; --brand-blue: #0d6efd; --ot-orange: #f39c12; }
+        body { font-family: 'Segoe UI', Arial, sans-serif; background: #f0f2f5; margin: 0; padding: 10px; display: flex; flex-direction: column; align-items: center; }
         
-        /* input Form Styling */
-        .card { width: 100%; max-width: 500px; background: white; padding: 15px; border-radius: 12px; box-shadow: 0 4px 10px rgba(0,0,0,0.1); margin-bottom: 15px; box-sizing: border-box; }
-        .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
-        label { font-size: 10px; font-weight: bold; color: #555; text-transform: uppercase; display: block; margin-bottom: 2px; }
-        input, select { padding: 10px; border: 1px solid #ccc; border-radius: 6px; width: 100%; font-size: 15px; margin-bottom: 8px; box-sizing: border-box; }
+        .card { width: 100%; max-width: 550px; background: white; padding: 20px; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); margin-bottom: 20px; box-sizing: border-box; }
+        h2 { text-align: center; color: var(--brand-green); margin-top: 0; }
+        
+        .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+        .full-width { grid-column: span 2; }
+        
+        label { font-size: 11px; font-weight: bold; color: #555; text-transform: uppercase; display: block; margin-bottom: 4px; }
+        input, select { padding: 12px; border: 1px solid #ccc; border-radius: 6px; width: 100%; font-size: 16px; margin-bottom: 10px; box-sizing: border-box; background: #fff; }
 
-        .sig-container { margin: 10px 0; background: #fff; border: 1px dashed #aaa; border-radius: 8px; width: 100%; height: 130px; position: relative; touch-action: none; }
-        .sig-placeholder { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); color: #ccc; font-size: 12px; pointer-events: none; }
-        canvas { width: 100%; height: 100%; touch-action: none; }
+        .sig-container { margin: 15px 0 5px 0; background: #fafafa; border: 2px dashed #bbb; border-radius: 8px; width: 100%; height: 140px; position: relative; touch-action: none; }
+        .sig-placeholder { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); color: #aaa; font-size: 13px; pointer-events: none; }
+        canvas { width: 100%; height: 100%; cursor: crosshair; }
         
-        .btn-group { display: flex; gap: 8px; margin-top: 10px; }
-        button { flex: 1; padding: 14px; border: none; border-radius: 8px; cursor: pointer; font-weight: bold; color: white; font-size: 14px; }
+        .btn-group { display: flex; gap: 10px; margin-top: 15px; }
+        button { flex: 1; padding: 15px; border: none; border-radius: 8px; cursor: pointer; font-weight: bold; color: white; font-size: 14px; transition: opacity 0.2s; }
         .btn-save { background: var(--brand-green); }
         .btn-pdf { background: var(--brand-blue); }
-        .btn-clear { background: #eee; color: #333; font-size: 10px; padding: 5px 10px; border-radius: 4px; border: 1px solid #ccc; margin-top: 2px; cursor: pointer; }
+        .btn-clear { background: #666; font-size: 11px; padding: 8px; margin-bottom: 10px; width: auto; flex: none; }
+        .btn-reset { background: #d9534f; margin-top: 20px; font-size: 12px; width: 100%; }
 
-        /* --- Full Table View for Screen --- */
-        .full-view-container { width: 100%; max-width: 600px; background: white; padding: 10px; border-radius: 10px; overflow-x: auto; box-shadow: 0 2px 5px rgba(0,0,0,0.05); margin-bottom: 30px; }
-        .full-table { width: 100%; border-collapse: collapse; font-size: 11px; min-width: 450px; }
-        .full-table th, .full-table td { border: 1px solid #ddd; padding: 5px; text-align: center; }
-        .full-table th { background: #f8f9fa; position: sticky; top: 0; }
-        .full-table tr:nth-child(even) { background: #fafafa; }
-        .summary-display { margin-top: 10px; font-size: 13px; font-weight: bold; border-top: 2px solid #eee; padding-top: 10px; }
+        .full-view-container { width: 100%; max-width: 700px; background: white; padding: 15px; border-radius: 10px; overflow-x: auto; box-shadow: 0 2px 5px rgba(0,0,0,0.05); margin-bottom: 40px; }
+        .full-table { width: 100%; border-collapse: collapse; font-size: 12px; min-width: 600px; }
+        .full-table th, .full-table td { border: 1px solid #eee; padding: 8px; text-align: center; }
+        .full-table th { background: #f4f4f4; color: #333; }
+        
+        .summary-display { margin-top: 15px; font-size: 14px; font-weight: bold; border-top: 3px solid var(--brand-green); padding-top: 15px; display: flex; justify-content: space-around; flex-wrap: wrap; gap: 10px; }
 
-        /* --- PDF Secret Template (Hidden) --- */
+        /* PDF styling hidden from UI */
         #pdf-wrapper { position: absolute; left: -9999px; top: 0; }
-        #pdf-content { width: 210mm; height: 297mm; padding: 10mm; background: white; color: black; box-sizing: border-box; display: flex; flex-direction: column; }
-        .pdf-header { display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid #000; padding-bottom: 5px; margin-bottom: 10px; }
-        .pdf-table { width: 100%; border-collapse: collapse; table-layout: fixed; }
-        .pdf-table th, .pdf-table td { border: 1px solid #000; padding: 2px; text-align: center; font-size: 10px; height: 16px; }
-        .pdf-table th { background: #f2f2f2; }
-        .pdf-summary { margin-top: 15px; display: flex; justify-content: space-between; }
-        .pdf-sum-lines div { border-bottom: 1px solid #000; padding: 4px 0; display: flex; justify-content: space-between; width: 240px; font-size: 12px; }
-        .pdf-sig-line { border-top: 1px solid #000; width: 220px; margin-top: 50px; text-align: center; font-size: 11px; padding-top: 5px; }
+        #pdf-content { width: 210mm; padding: 15mm; background: white; color: black; }
+        .pdf-header { display: flex; justify-content: space-between; align-items: flex-start; border-bottom: 2px solid #000; padding-bottom: 10px; margin-bottom: 20px; }
+        .pdf-table { width: 100%; border-collapse: collapse; margin-bottom: 20px; }
+        .pdf-table th, .pdf-table td { border: 1px solid #333; padding: 4px; text-align: center; font-size: 11px; }
+        .pdf-table th { background: #f0f0f0; }
+        .pdf-summary-box { display: flex; justify-content: space-between; align-items: flex-end; margin-top: 30px; }
+        .pdf-sum-lines div { border-bottom: 1px solid #333; padding: 5px 0; width: 280px; display: flex; justify-content: space-between; font-size: 12px; }
     </style>
 </head>
 <body>
 
 <div class="card">
-    <h2 style="text-align:center; color:var(--brand-green); margin:0 0 15px 0;">AC ELEKTRO</h2>
+    <h2>AC ELEKTRO</h2>
     <div class="grid">
-        <div style="grid-column: span 2;"><label>Name, Vorname</label><input type="text" id="name" placeholder="Name eingeben..." oninput="updateView()"></div>
-        <div><label>Monat</label><input type="month" id="month" onchange="updateView()"></div>
-        <div><label>Tag</label><input type="number" id="day" min="1" max="31"></div>
-        <div><label>Beginn</label><input type="time" id="start" value="07:00"></div>
-        <div><label>Ende</label><input type="time" id="end" value="16:00"></div>
-        <div><label>Typ</label>
+        <div class="full-width"><label>Name, Vorname</label><input type="text" id="name" placeholder="Eingeben..." oninput="updateView()"></div>
+        <div><label>Monat / Jahr</label><input type="month" id="month" onchange="updateView()"></div>
+        <div><label>Tag</label><input type="number" id="day" min="1" max="31" placeholder="1-31"></div>
+        <div><label>Arbeitsbeginn</label><input type="time" id="start" value="07:00"></div>
+        <div><label>Arbeitsende</label><input type="time" id="end" value="16:00"></div>
+        <div><label>Tätigkeitstyp</label>
             <select id="type">
-                <option value="work">Arbeit</option>
+                <option value="work">Arbeit (Normal)</option>
                 <option value="urlaub">Urlaub</option>
                 <option value="feiertag">Feiertag</option>
-                <option value="krank">Krank</option>
+                <option value="krank">Krankheit</option>
             </select>
         </div>
-        <div><label>Ort</label><input type="text" id="city" placeholder="Baustelle"></div>
+        <div><label>Einsatzort / Projekt</label><input type="text" id="city" placeholder="Baustelle"></div>
     </div>
     
     <div class="sig-container">
         <div class="sig-placeholder" id="sig-label">Hier unterschreiben</div>
         <canvas id="canvas"></canvas>
     </div>
-    <button class="btn-clear" onclick="pad.clear(); document.getElementById('sig-label').style.display='block';">Löschen</button>
+    <button class="btn-clear" onclick="pad.clear(); document.getElementById('sig-label').style.display='block';">Unterschrift löschen</button>
     
     <div class="btn-group">
-        <button class="btn-save" onclick="save()">Hinzufügen</button>
+        <button class="btn-save" onclick="save()">Speichern</button>
         <button class="btn-pdf" onclick="generate()">PDF Erstellen</button>
     </div>
+    
+    <button class="btn-reset" onclick="resetData()">Alle Daten löschen (Reset)</button>
 </div>
 
-<div style="width:100%; max-width:500px; font-weight:bold; margin-bottom:5px;">Vollständige Tabelle (1-31):</div>
 <div class="full-view-container">
+    <h3 style="margin-top:0;">Monatsübersicht</h3>
     <table class="full-table">
         <thead>
-            <tr><th>Tag</th><th>Start</th><th>Ende</th><th>Pause</th><th>Std.</th><th>Einsatzort</th></tr>
+            <tr>
+                <th>Tag</th>
+                <th>Beginn</th>
+                <th>Ende</th>
+                <th>Pause (h)</th>
+                <th>Netto (h)</th>
+                <th>Überstd.</th>
+                <th>Einsatzort</th>
+            </tr>
         </thead>
         <tbody id="ui-table-body"></tbody>
     </table>
     <div class="summary-display">
-        Gesamtstunden: <span id="ui-total-hrs" style="color:var(--brand-blue);">0.00</span> h
+        <div>Gesamt Std: <span id="ui-total-hrs" style="color:var(--brand-blue);">0.00</span></div>
+        <div>Gesamt Überstd: <span id="ui-total-ot" style="color:var(--ot-orange);">0.00</span></div>
     </div>
 </div>
 
@@ -97,103 +110,196 @@
     <div id="pdf-content">
         <div class="pdf-header">
             <div>
-                <h1 style="margin:0; font-size: 20px;">Zeiterfassung / Stundennachweis</h1>
-                <p style="margin:5px 0; font-size: 13px;">Name: <b id="out-name"></b> | Monat: <b id="out-month"></b></p>
+                <h1 style="margin:0; font-size: 22px; color:#333;">STUNDENNACHWEIS</h1>
+                <p style="margin:5px 0; font-size: 14px;">Mitarbeiter: <b id="out-name"></b></p>
+                <p style="margin:0; font-size: 14px;">Monat: <b id="out-month"></b></p>
             </div>
-            <div style="color:var(--brand-green); font-size: 26px; font-weight: bold;">AC ELEKTRO</div>
+            <div style="text-align:right;">
+                <div style="color:var(--brand-green); font-size: 28px; font-weight: bold;">AC ELEKTRO</div>
+                <p style="font-size:10px; margin:0;">Zeiterfassungssystem v20.0</p>
+            </div>
         </div>
+
         <table class="pdf-table">
             <thead>
-                <tr><th style="width:30px">Tag</th><th style="width:55px">Beginn</th><th style="width:55px">Ende</th><th style="width:50px">Pause</th><th style="width:65px">Std.</th><th>Einsatzort</th></tr>
+                <tr>
+                    <th style="width:30px">Tag</th>
+                    <th>Beginn</th>
+                    <th>Ende</th>
+                    <th>Pause</th>
+                    <th>Arbeitszeit</th>
+                    <th>Überstd.</th>
+                    <th>Einsatzort / Bemerkung</th>
+                </tr>
             </thead>
             <tbody id="pdf-table-body"></tbody>
         </table>
-        <div class="pdf-summary">
+
+        <div class="pdf-summary-box">
             <div class="pdf-sum-lines">
-                <div>Arbeitsstunden <span id="sum-work">0.00</span></div>
-                <div>Urlaub -Stunden- <span id="sum-urlaub">0.00</span></div>
-                <div>Feiertag -Stunden- <span id="sum-feier">0.00</span></div>
-                <div>Krank -Stunden- <span id="sum-krank">0.00</span></div>
-                <div style="font-weight:bold; border-bottom: 2px solid #000; margin-top:10px; font-size: 14px;">Stunden insgesamt <span id="sum-total">0.00</span></div>
+                <div>Reguläre Arbeitsstunden: <span id="sum-work">0.00</span></div>
+                <div>Gesamt Überstunden: <span id="sum-ot" style="font-weight:bold;">0.00</span></div>
+                <div>Urlaub / Krank / Feiertag (h): <span id="sum-others">0.00</span></div>
+                <div style="font-weight:bold; font-size: 15px; border-bottom: 2px solid #000; margin-top:10px;">
+                    GESAMTSTUNDEN MONAT: <span id="sum-total">0.00</span>
+                </div>
             </div>
-            <div style="display:flex; flex-direction:column; align-items:center;">
-                <img id="pdf-sig-img" style="max-height:80px; width:180px; display:none;">
-                <div class="pdf-sig-line">Unterschrift Mitarbeiter</div>
+            <div style="text-align:center;">
+                <img id="pdf-sig-img" style="max-height:70px; width:180px; display:none; border-bottom: 1px solid #000;">
+                <p style="font-size:11px; margin-top:5px;">Unterschrift Mitarbeiter</p>
             </div>
         </div>
     </div>
 </div>
 
 <script>
-    let db = JSON.parse(localStorage.getItem('ac_v18_db')) || {};
+    let db = JSON.parse(localStorage.getItem('ac_v20_db')) || {};
     const canvas = document.getElementById("canvas");
-    const pad = new SignaturePad(canvas, { onBegin: () => document.getElementById('sig-label').style.display='none' });
+    const pad = new SignaturePad(canvas, { 
+        onBegin: () => document.getElementById('sig-label').style.display='none' 
+    });
 
-    function resize() {
-        const r = Math.max(window.devicePixelRatio || 1, 1);
-        canvas.width = canvas.offsetWidth * r; canvas.height = canvas.offsetHeight * r;
-        canvas.getContext("2d").scale(r, r);
+    // Handle high DPI screens for signature
+    function resizeCanvas() {
+        const ratio = Math.max(window.devicePixelRatio || 1, 1);
+        canvas.width = canvas.offsetWidth * ratio;
+        canvas.height = canvas.offsetHeight * ratio;
+        canvas.getContext("2d").scale(ratio, ratio);
         pad.clear();
     }
-    window.onresize = resize; window.onload = () => { resize(); updateView(); };
+
+    window.onresize = resizeCanvas;
+    window.onload = () => {
+        resizeCanvas();
+        document.getElementById('name').value = localStorage.getItem('ac_name') || '';
+        document.getElementById('month').value = localStorage.getItem('ac_month') || '';
+        updateView();
+    };
 
     function updateView() {
         const m = document.getElementById('month').value;
         const name = document.getElementById('name').value;
-        document.getElementById('out-month').innerText = m || "";
-        document.getElementById('out-name').innerText = name || "";
+        
+        localStorage.setItem('ac_name', name);
+        localStorage.setItem('ac_month', m);
+
+        document.getElementById('out-name').innerText = name || "________________";
+        document.getElementById('out-month').innerText = m || "________________";
         
         const uiBody = document.getElementById('ui-table-body');
         const pdfBody = document.getElementById('pdf-table-body');
         uiBody.innerHTML = ""; pdfBody.innerHTML = "";
         
-        let s = { work:0, urlaub:0, feier:0, krank:0 };
+        let stats = { work:0, ot:0, others:0, total:0 };
 
         for(let i=1; i<=31; i++) {
-            const r = db[`${m}-${i}`] || {s:'', e:'', p:0, m:0, c:'', t:'work'};
-            const hrs = r.m > 0 ? (r.m/60).toFixed(2) : '';
-            const pauseVal = r.p > 0 ? '0.50' : '';
+            const entry = db[`${m}-${i}`] || {s:'', e:'', p:0, m:0, ot:0, c:'', t:'work'};
+            const hrs = entry.m > 0 ? (entry.m/60).toFixed(2) : '';
+            const ot = entry.ot > 0 ? (entry.ot/60).toFixed(2) : '';
+            const pause = entry.p > 0 ? (entry.p/60).toFixed(2) : '';
             
-            // UI Table (Shows all 31 rows)
-            uiBody.innerHTML += `<tr>
-                <td>${i}</td><td>${r.s}</td><td>${r.e}</td><td>${pauseVal}</td>
-                <td style="font-weight:bold">${hrs}</td><td>${r.c}</td>
+            const row = `<tr>
+                <td>${i}</td>
+                <td>${entry.s}</td>
+                <td>${entry.e}</td>
+                <td>${pause}</td>
+                <td style="font-weight:bold;">${hrs}</td>
+                <td style="color:var(--ot-orange); font-weight:bold;">${ot}</td>
+                <td style="text-align:left;">${entry.c}</td>
             </tr>`;
             
-            // PDF Table
-            pdfBody.innerHTML += `<tr><td>${i}</td><td>${r.s}</td><td>${r.e}</td><td>${pauseVal}</td><td><b>${hrs}</b></td><td style="text-align:left; padding-left:5px;">${r.c}</td></tr>`;
-            if(r.m > 0) s[r.t] += r.m;
+            uiBody.innerHTML += row;
+            pdfBody.innerHTML += row;
+
+            if(entry.m > 0) {
+                if(entry.t === 'work') {
+                    stats.work += (entry.m - entry.ot);
+                } else {
+                    stats.others += entry.m;
+                }
+                stats.ot += entry.ot;
+                stats.total += entry.m;
+            }
         }
         
-        const total = (s.work+s.urlaub+s.feier+s.krank)/60;
-        document.getElementById('ui-total-hrs').innerText = total.toFixed(2);
-        document.getElementById('sum-work').innerText = (s.work/60).toFixed(2);
-        document.getElementById('sum-urlaub').innerText = (s.urlaub/60).toFixed(2);
-        document.getElementById('sum-feier').innerText = (s.feier/60).toFixed(2);
-        document.getElementById('sum-krank').innerText = (s.krank/60).toFixed(2);
-        document.getElementById('sum-total').innerText = total.toFixed(2);
+        document.getElementById('ui-total-hrs').innerText = (stats.total/60).toFixed(2);
+        document.getElementById('ui-total-ot').innerText = (stats.ot/60).toFixed(2);
+        document.getElementById('sum-work').innerText = (stats.work/60).toFixed(2);
+        document.getElementById('sum-ot').innerText = (stats.ot/60).toFixed(2);
+        document.getElementById('sum-others').innerText = (stats.others/60).toFixed(2);
+        document.getElementById('sum-total').innerText = (stats.total/60).toFixed(2);
     }
 
     function save() {
-        const m = document.getElementById('month').value, d = document.getElementById('day').value;
-        if(!m || !d) return alert("Wähle Monat und Tag!");
-        const s = document.getElementById('start').value, e = document.getElementById('end').value, type = document.getElementById('type').value;
-        const sP = s.split(':'), eP = e.split(':');
-        let diff = (parseInt(eP[0])*60 + parseInt(eP[1])) - (parseInt(sP[0])*60 + parseInt(sP[1]));
-        let p = (diff > 360 && type === 'work') ? 30 : 0;
-        db[`${m}-${d}`] = { s, e, p, m: diff - p, c: document.getElementById('city').value, t: type };
-        localStorage.setItem('ac_v18_db', JSON.stringify(db));
+        const m = document.getElementById('month').value;
+        const d = document.getElementById('day').value;
+        if(!m || !d) return alert("Bitte Monat und Tag wählen!");
+
+        const s = document.getElementById('start').value;
+        const e = document.getElementById('end').value;
+        const type = document.getElementById('type').value;
+        
+        const startParts = s.split(':');
+        const endParts = e.split(':');
+        let diffMinutes = (parseInt(endParts[0])*60 + parseInt(endParts[1])) - (parseInt(startParts[0])*60 + parseInt(startParts[1]));
+        
+        if(diffMinutes <= 0) return alert("Das Ende muss nach dem Beginn liegen!");
+
+        // German Law Break Calculation
+        let pause = 0;
+        if(type === 'work') {
+            if(diffMinutes > 540) pause = 45;      // > 9h
+            else if(diffMinutes > 360) pause = 30; // > 6h
+        }
+
+        let netMinutes = diffMinutes - pause;
+        let overtimeMinutes = 0;
+
+        // Overtime: Anything over 8 hours (480 mins) is overtime
+        if(type === 'work' && netMinutes > 480) {
+            overtimeMinutes = netMinutes - 480;
+        }
+
+        db[`${m}-${d}`] = {
+            s: s, e: e, p: pause,
+            m: netMinutes,
+            ot: overtimeMinutes,
+            c: document.getElementById('city').value,
+            t: type
+        };
+
+        localStorage.setItem('ac_v20_db', JSON.stringify(db));
         updateView();
-        alert("Eintrag für Tag " + d + " gespeichert!");
+        alert("Eintrag gespeichert!");
     }
 
     function generate() {
-        if(pad.isEmpty()) return alert("Bitte erst unterschreiben!");
+        if(pad.isEmpty()) return alert("Bitte unterschreiben Sie zuerst!");
+        
         const sigImg = document.getElementById('pdf-sig-img');
-        sigImg.src = pad.toDataURL(); sigImg.style.display = 'block';
+        sigImg.src = pad.toDataURL();
+        sigImg.style.display = 'block';
+        
         const element = document.getElementById('pdf-content');
-        const opt = { margin: 0, filename: `Stundennachweis_${document.getElementById('month').value}.pdf`, image: { type: 'jpeg', quality: 1 }, html2canvas: { scale: 2 }, jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' } };
-        html2pdf().from(element).set(opt).save().then(() => { sigImg.style.display = 'none'; });
+        const opt = {
+            margin: 0,
+            filename: `Stundennachweis_AC_Elektro_${document.getElementById('month').value}.pdf`,
+            image: { type: 'jpeg', quality: 0.98 },
+            html2canvas: { scale: 2, useCORS: true },
+            jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
+        };
+
+        html2pdf().from(element).set(opt).save().then(() => {
+            sigImg.style.display = 'none';
+        });
+    }
+
+    function resetData() {
+        if(confirm("Möchten Sie wirklich alle Daten für diesen Monat löschen?")) {
+            db = {};
+            localStorage.removeItem('ac_v20_db');
+            updateView();
+        }
     }
 </script>
 </body>
