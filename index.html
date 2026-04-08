@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>AC ELEKTRO - Zeiterfassung v23.0</title>
+    <title>AC ELEKTRO - Zeiterfassung v25.0</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/signature_pad@4.0.0/dist/signature_pad.umd.min.js"></script>
     
@@ -46,8 +46,8 @@
         <div class="full-width"><label>Name, Vorname</label><input type="text" id="name" placeholder="Name..." oninput="updateView()"></div>
         <div><label>Monat / Jahr</label><input type="month" id="month" onchange="updateView()"></div>
         <div><label>Tag</label><input type="number" id="day" min="1" max="31"></div>
-        <div><label>Beginn (Start)</label><input type="time" id="start" value="07:00"></div>
-        <div><label>Ende (Stop)</label><input type="time" id="end" value="16:00"></div>
+        <div><label>Beginn (7:00)</label><input type="time" id="start" value="07:00"></div>
+        <div><label>Ende (16:00)</label><input type="time" id="end" value="16:00"></div>
         <div><label>Kategorie</label>
             <select id="type">
                 <option value="work">Arbeit</option>
@@ -79,7 +79,7 @@
         <tbody id="ui-table-body"></tbody>
     </table>
     <div class="summary-display">
-        <div>Gesamt (Monat): <span id="ui-total-hrs" style="color:var(--brand-blue);">0.00</span> h</div>
+        <div>Gesamt Std: <span id="ui-total-hrs" style="color:var(--brand-blue);">0.00</span> h</div>
         <div>Überstunden: <span id="ui-total-ot" style="color:var(--ot-orange);">0.00</span> h</div>
     </div>
 </div>
@@ -101,7 +101,7 @@
         </table>
         <div class="pdf-summary-box">
             <div class="pdf-sum-lines">
-                <div>Reguläre Arbeitsstunden (Netto): <span id="sum-work">0.00</span></div>
+                <div>Arbeitsstunden Netto: <span id="sum-work">0.00</span></div>
                 <div>Gesamt Überstunden: <span id="sum-ot" style="font-weight:bold;">0.00</span></div>
                 <div>Urlaub/Krank/Feiertag: <span id="sum-others">0.00</span></div>
                 <div style="font-weight:bold; border-bottom: 2px solid #000; margin-top:10px; font-size: 14px;">GESAMTSTUNDEN: <span id="sum-total">0.00</span></div>
@@ -115,7 +115,7 @@
 </div>
 
 <script>
-    let db = JSON.parse(localStorage.getItem('ac_v23_db')) || {};
+    let db = JSON.parse(localStorage.getItem('ac_v25_db')) || {};
     const canvas = document.getElementById("canvas");
     const pad = new SignaturePad(canvas, { onBegin: () => document.getElementById('sig-label').style.display='none' });
 
@@ -132,11 +132,9 @@
         const n = document.getElementById('name').value;
         document.getElementById('out-name').innerText = n;
         document.getElementById('out-month').innerText = m;
-        
         const uiBody = document.getElementById('ui-table-body');
         const pdfBody = document.getElementById('pdf-table-body');
         uiBody.innerHTML = ""; pdfBody.innerHTML = "";
-        
         let s = { work:0, ot:0, others:0, total:0 };
 
         for(let i=1; i<=31; i++) {
@@ -144,11 +142,9 @@
             const hrs = entry.m > 0 ? (entry.m/60).toFixed(2) : '';
             const ot = entry.ot > 0 ? (entry.ot/60).toFixed(2) : '';
             const pause = entry.p > 0 ? (entry.p/60).toFixed(2) : '';
-            
             const html = `<tr><td>${i}</td><td>${entry.s}</td><td>${entry.e}</td><td>${pause}</td>
                         <td style="font-weight:bold;">${hrs}</td><td style="color:var(--ot-orange);">${ot}</td><td>${entry.c}</td></tr>`;
             uiBody.innerHTML += html; pdfBody.innerHTML += html;
-
             if(entry.m > 0) {
                 if(entry.t === 'work') s.work += (entry.m - entry.ot);
                 else s.others += entry.m;
@@ -166,34 +162,34 @@
     function save() {
         const m = document.getElementById('month').value, d = document.getElementById('day').value;
         if(!m || !d) return alert("Datum wählen!");
-
         const s = document.getElementById('start').value, e = document.getElementById('end').value, type = document.getElementById('type').value;
         const sP = s.split(':'), eP = e.split(':');
         let diff = (parseInt(eP[0])*60 + parseInt(eP[1])) - (parseInt(sP[0])*60 + parseInt(sP[1]));
         if(diff <= 0) return alert("Zeitfehler!");
 
-        // --- නව විවේක කාල ගණනය (New Pause Logic) ---
+        // --- නව විවේක කාල Logic (New Pause Logic) ---
         let pause = 0;
         if(type === 'work') {
-            if(diff > 540) { // පැය 9 ට වඩා වැඩි නම් (540 min)
-                pause = 60; // විනාඩි 60 (පැය 1)
-            } else {
-                pause = 30; // අනෙක් අවස්ථාවල විනාඩි 30
+            if(diff > 540) { // පැය 9 ට වඩා වැඩි නම්
+                pause = 45; // විනාඩි 45
+            } else if (diff >= 360) { // පැය 6 සිට 9 දක්වා
+                pause = 30; // විනාඩි 30
             }
         }
 
         let net = diff - pause;
         let ot = 0;
 
-        // පැය 8.5 (510 min) ට වඩා වැඩි කාලය Overtime ලෙස ගණන් ගැනේ
+        // පැය 8.5 (විනාඩි 510) ඉක්මවන කාලය අමතර පැය ලෙස වැටේ
+        // (උදා: 7-16h වැඩ කළොත් පැය 9යි, විනාඩි 30ක් අඩු වී ශුද්ධ කාලය 8.5h වේ. අමතර පැය 0යි.)
         if(type === 'work' && net > 510) {
             ot = net - 510;
         }
 
         db[`${m}-${d}`] = { s, e, p: pause, m: net, ot, c: document.getElementById('city').value, t: type };
-        localStorage.setItem('ac_v23_db', JSON.stringify(db));
+        localStorage.setItem('ac_v25_db', JSON.stringify(db));
         updateView();
-        alert("Tag " + d + " gespeichert!");
+        alert("Gespeichert!");
     }
 
     function generate() {
