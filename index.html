@@ -11,26 +11,23 @@
         :root { --brand: #2c3e50; --green: #27ae60; --bg: #f1f2f6; }
         body { font-family: 'Helvetica', Arial, sans-serif; background: var(--bg); margin: 0; padding: 10px; display: flex; flex-direction: column; align-items: center; }
         
-        /* FORMULAR */
         .card { width: 100%; max-width: 550px; background: white; padding: 20px; border-radius: 12px; box-shadow: 0 5px 15px rgba(0,0,0,0.1); box-sizing: border-box; margin-bottom: 20px; }
         .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
         .full { grid-column: span 2; }
         label { font-size: 13px; font-weight: bold; display: block; margin-bottom: 4px; color: var(--brand); }
         input, select { padding: 12px; border: 1px solid #ccc; border-radius: 6px; width: 100%; font-size: 14px; box-sizing: border-box; }
         
-        /* SCROLLABLE PREVIEW TABLE */
-        .preview-container { width: 100%; max-width: 850px; background: white; padding: 15px; border-radius: 12px; box-shadow: 0 5px 15px rgba(0,0,0,0.05); box-sizing: border-box; margin-bottom: 30px; }
+        .preview-container { width: 100%; max-width: 900px; background: white; padding: 15px; border-radius: 12px; box-shadow: 0 5px 15px rgba(0,0,0,0.05); box-sizing: border-box; margin-bottom: 30px; }
         .scroll-box { width: 100%; overflow-x: auto; }
         .preview-title { font-weight: bold; color: var(--brand); margin-bottom: 15px; border-left: 5px solid var(--green); padding-left: 10px; font-size: 18px; }
         
-        table { width: 100%; border-collapse: collapse; min-width: 650px; }
+        table { width: 100%; border-collapse: collapse; min-width: 750px; }
         th, td { border: 1px solid #eee; padding: 8px; text-align: center; font-size: 12px; }
         th { background: #f8f9fa; color: var(--brand); }
 
-        /* SUMMARY BOX UNDER TABLE */
-        .summary-box { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 10px; margin-top: 20px; padding: 15px; background: #fffde7; border: 1px solid #fbc02d; border-radius: 8px; }
-        .sum-item { font-size: 13px; }
-        .sum-item b { font-size: 15px; color: var(--brand); }
+        .summary-box { display: grid; grid-template-columns: repeat(auto-fit, minmax(130px, 1fr)); gap: 10px; margin-top: 20px; padding: 15px; background: #fffde7; border: 1px solid #fbc02d; border-radius: 8px; }
+        .sum-item { font-size: 12px; line-height: 1.4; }
+        .sum-item b { font-size: 14px; color: var(--brand); }
 
         .sig-wrapper { border: 2px dashed #ccc; border-radius: 8px; margin-top: 15px; position: relative; background: #fff; }
         canvas { width: 100%; height: 130px; touch-action: none; }
@@ -43,10 +40,9 @@
 
         /* PDF HIDDEN AREA */
         #pdf-render { position: absolute; left: -9999px; width: 210mm; background: white; padding: 15mm; color: black; box-sizing: border-box; }
-        .pdf-h1 { font-size: 22px; border-bottom: 2px solid black; padding-bottom: 5px; margin-bottom: 20px; }
-        .pdf-table { width: 100%; border-collapse: collapse; margin-bottom: 20px; }
-        .pdf-table th, .pdf-table td { border: 1px solid black; padding: 4px; font-size: 11px; text-align: center; }
-        .pdf-footer { display: flex; justify-content: space-between; align-items: flex-end; margin-top: 10px; }
+        .pdf-table { width: 100%; border-collapse: collapse; margin-top: 10px; }
+        .pdf-table th, .pdf-table td { border: 1px solid black; padding: 4px; font-size: 10px; text-align: center; }
+        .pdf-footer { display: flex; justify-content: space-between; align-items: flex-end; margin-top: 20px; }
     </style>
 </head>
 <body>
@@ -85,12 +81,12 @@
 </div>
 
 <div class="preview-container">
-    <div class="preview-title">Monatsübersicht (Vorschau)</div>
+    <div class="preview-title">Monatliche Übersicht</div>
     <div class="scroll-box">
         <table>
             <thead>
                 <tr>
-                    <th>Tag</th><th>Beginn</th><th>Ende</th><th>Pause</th><th>Netto Std.</th><th>Einsatzort</th>
+                    <th>Tag</th><th>Beginn</th><th>Ende</th><th>Pause</th><th>Netto Std.</th><th style="color:red;">Überst.</th><th>Einsatzort</th>
                 </tr>
             </thead>
             <tbody id="live-body"></tbody>
@@ -98,43 +94,41 @@
     </div>
 
     <div class="summary-box">
-        <div class="sum-item">Arbeitsstunden:<br><b id="st-w">0.00</b> h</div>
-        <div class="sum-item">Urlaub:<br><b id="st-u">0.00</b> h</div>
-        <div class="sum-item">Feiertag:<br><b id="st-f">0.00</b> h</div>
-        <div class="sum-item">Krank:<br><b id="st-k">0.00</b> h</div>
-        <div class="sum-item" style="color:var(--green);"><b>Gesamt: <span id="st-total">0.00</span> h</b></div>
+        <div class="sum-item">Regulär Std:<br><b id="st-w">0.00</b> h</div>
+        <div class="sum-item">Überstunden (+):<br><b id="st-ot" style="color:red;">0.00</b> h</div>
+        <div class="sum-item">Urlaub/Krank:<br><b id="st-off">0.00</b> h</div>
+        <div class="sum-item" style="border-left: 2px solid #ccc; padding-left:10px;"><b>GESAMT:<br><span id="st-total">0.00</span> h</b></div>
     </div>
 </div>
 
 <div id="pdf-render">
-    <div class="pdf-h1">Zeiterfassung / Stundennachweis</div>
-    <div style="display:flex; justify-content:space-between; margin-bottom:15px; font-weight:bold;">
-        <div>Name: <span id="p-name"></span></div>
-        <div>Monat: <span id="p-month"></span></div>
+    <h2 style="border-bottom:2px solid black; padding-bottom:5px;">STUNDENNACHWEIS - AC ELEKTRO</h2>
+    <div style="display:flex; justify-content:space-between; margin: 15px 0; font-weight:bold;">
+        <div>Mitarbeiter: <span id="p-name"></span></div>
+        <div>Monat/Jahr: <span id="p-month"></span></div>
     </div>
     <table class="pdf-table">
         <thead>
-            <tr><th>Tag</th><th>Beginn</th><th>Ende</th><th>Pause</th><th>Netto Std.</th><th>Bemerkung</th></tr>
+            <tr><th>Tag</th><th>Beginn</th><th>Ende</th><th>Pause</th><th>Netto Std.</th><th>Überst.</th><th>Bemerkung</th></tr>
         </thead>
         <tbody id="p-body"></tbody>
     </table>
     <div class="pdf-footer">
-        <div style="font-size:13px; line-height:1.6;">
-            Arbeitsstunden: <b id="ps-w">0.00</b> h<br>
-            Urlaub -Std-: <b id="ps-u">0.00</b> h<br>
-            Feiertag -Std-: <b id="ps-f">0.00</b> h<br>
-            Krank -Std-: <b id="ps-k">0.00</b> h<br>
-            <b>Gesamtstunden: <span id="ps-total">0.00</span> h</b>
+        <div style="font-size:12px; line-height:1.8;">
+            Reguläre Arbeitsstunden: <b id="ps-w">0.00</b> h<br>
+            Überstunden (+): <b id="ps-ot">0.00</b> h<br>
+            Urlaub / Krankheit / Feiertag: <b id="ps-off">0.00</b> h<br>
+            <span style="font-size:16px;"><b>GESAMTSUMME: <span id="ps-total">0.00</span> h</b></span>
         </div>
-        <div style="text-align:center; width:220px;">
-            <img id="p-sig" style="max-height:60px;"><br>
-            <div style="border-top:1px solid black; font-size:11px; font-weight:bold; padding-top:5px;">Unterschrift des Mitarbeiters</div>
+        <div style="text-align:center; width:250px;">
+            <img id="p-sig" style="max-height:70px;"><br>
+            <div style="border-top:1px solid black; font-size:11px; font-weight:bold; margin-top:5px;">Unterschrift des Mitarbeiters</div>
         </div>
     </div>
 </div>
 
 <script>
-    let db = JSON.parse(localStorage.getItem('ace_final_v10')) || {};
+    let db = JSON.parse(localStorage.getItem('ace_v11_db')) || {};
     const canvas = document.getElementById("sig-pad");
     const pad = new SignaturePad(canvas);
 
@@ -152,7 +146,7 @@
         document.getElementById('p-name').innerText = document.getElementById('in-name').value;
         document.getElementById('p-month').innerText = `${m} / ${y}`;
 
-        let w=0, u=0, f=0, k=0;
+        let w=0, ot=0, off=0;
         const liveBody = document.getElementById('live-body');
         const pdfBody = document.getElementById('p-body');
         liveBody.innerHTML = ""; pdfBody.innerHTML = "";
@@ -160,27 +154,33 @@
         for(let i=1; i<=lastDay; i++) {
             const key = `${y}-${m}-${i}`;
             const row = db[key] || {};
+            
             const html = `<tr>
                 <td>${i}</td><td>${row.s || ''}</td><td>${row.e || ''}</td>
-                <td>${row.p ? row.p+'m' : ''}</td><td>${row.h ? row.h.toFixed(2) : ''}</td>
-                <td>${row.c || ''}</td>
+                <td>${row.p ? row.p+'m' : ''}</td>
+                <td>${row.h ? row.h.toFixed(2) : ''}</td>
+                <td style="color:red; font-weight:bold;">${row.ot > 0 ? row.ot.toFixed(2) : ''}</td>
+                <td style="text-align:left;">${row.c || ''}</td>
             </tr>`;
+            
             liveBody.innerHTML += html;
             pdfBody.innerHTML += html;
 
             if(row.h) {
-                if(row.t === 'work') w += row.h;
-                else if(row.t === 'urlaub') u += row.h;
-                else if(row.t === 'feiertag') f += row.h;
-                else if(row.t === 'krank') k += row.h;
+                if(row.t === 'work') {
+                    w += row.h;
+                    ot += (row.ot || 0);
+                } else {
+                    off += row.h;
+                }
             }
         }
 
-        const total = w + u + f + k;
-        // Update Summaries
-        const ids = ['st-w', 'st-u', 'st-f', 'st-k', 'st-total', 'ps-w', 'ps-u', 'ps-f', 'ps-k', 'ps-total'];
-        const vals = [w, u, f, k, total, w, u, f, k, total];
-        ids.forEach((id, i) => document.getElementById(id).innerText = vals[i].toFixed(2));
+        const total = w + ot + off;
+        document.getElementById('st-w').innerText = document.getElementById('ps-w').innerText = w.toFixed(2);
+        document.getElementById('st-ot').innerText = document.getElementById('ps-ot').innerText = ot.toFixed(2);
+        document.getElementById('st-off').innerText = document.getElementById('ps-off').innerText = off.toFixed(2);
+        document.getElementById('st-total').innerText = document.getElementById('ps-total').innerText = total.toFixed(2);
     }
 
     function saveData() {
@@ -191,25 +191,36 @@
         const t = document.getElementById('in-type').value;
         const c = document.getElementById('in-city').value;
         
-        let hrs = 0;
+        let netto = 0, over = 0;
         if(t === 'work') {
             const [sh, sm] = s.split(':').map(Number), [eh, em] = e.split(':').map(Number);
-            hrs = ((eh * 60 + em) - (sh * 60 + sm) - pVal) / 60;
-        } else { hrs = 8.5; }
+            let totalMin = (eh * 60 + em) - (sh * 60 + sm) - pVal;
+            let totalHrs = totalMin / 60;
+            
+            if(totalHrs > 8.5) {
+                netto = 8.5;
+                over = totalHrs - 8.5;
+            } else {
+                netto = totalHrs;
+                over = 0;
+            }
+        } else {
+            netto = 8.5; 
+        }
 
-        db[`${y}-${m}-${parseInt(day)}`] = { s, e, p: pVal, h: hrs, c, t };
-        localStorage.setItem('ace_final_v10', JSON.stringify(db));
+        db[`${y}-${m}-${parseInt(day)}`] = { s, e, p: pVal, h: netto, ot: over, c, t };
+        localStorage.setItem('ace_v11_db', JSON.stringify(db));
         updateUI();
         alert("Daten gespeichert!");
     }
 
-    function resetAll() { if(confirm("Alle Daten löschen?")) { localStorage.removeItem('ace_final_v10'); db={}; updateUI(); } }
+    function resetAll() { if(confirm("Alle Daten löschen?")) { localStorage.removeItem('ace_v11_db'); db={}; updateUI(); } }
 
     function exportPDF() {
         if(pad.isEmpty()) return alert("Bitte unterschreiben!");
         document.getElementById('p-sig').src = pad.toDataURL();
         const element = document.getElementById('pdf-render');
-        html2pdf().set({ margin: 5, filename: 'Stundennachweis.pdf', html2canvas: { scale: 2 }, jsPDF: { format: 'a4', orientation: 'portrait' } }).from(element).save();
+        html2pdf().set({ margin: 5, filename: 'AC_Stundennachweis.pdf', html2canvas: { scale: 2 }, jsPDF: { format: 'a4', orientation: 'portrait' } }).from(element).save();
     }
 </script>
 </body>
