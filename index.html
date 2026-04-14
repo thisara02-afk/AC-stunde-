@@ -135,20 +135,35 @@ async function loadCloud(){
 }
 
 function render(){
-    let html="<tr><th>Tag</th><th>Std</th><th>Typ</th></tr>";
+    let html="<tr><th>Datum</th><th>Stunden</th><th>Typ</th></tr>";
+
     let sum={work:0,urlaub:0,feiertag:0,krank:0,ot:0};
 
-    for(let d in db){
-        let r=db[d];
-        html+=`<tr><td>${d}</td><td>${(r.net/60).toFixed(2)}</td><td>${r.t}</td></tr>`;
+    // 🔥 sort dates
+    let keys = Object.keys(db).sort();
 
-        if(r.t==="work"){ sum.work+=r.net; sum.ot+=r.ot;}
-        else sum[r.t]+=r.net;
-    }
+    keys.forEach(d => {
+        let r = db[d];
 
-    document.getElementById("table").innerHTML=html;
+        html += `
+        <tr>
+            <td>${d}</td>
+            <td>${(r.net/60).toFixed(2)}</td>
+            <td>${r.t}</td>
+        </tr>`;
 
-    document.getElementById("pdfContent").innerHTML=`
+        if(r.t==="work"){ 
+            sum.work+=r.net; 
+            sum.ot+=r.ot;
+        }
+        else {
+            sum[r.t]+=r.net;
+        }
+    });
+
+    document.getElementById("table").innerHTML = html;
+
+    document.getElementById("pdfContent").innerHTML = `
     Arbeitsstunden: ${(sum.work/60).toFixed(2)}h<br>
     Urlaub: ${(sum.urlaub/60).toFixed(2)}h<br>
     Feiertag: ${(sum.feiertag/60).toFixed(2)}h<br>
