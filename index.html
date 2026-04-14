@@ -37,14 +37,20 @@
         .btn-pdf { background: var(--blue); }
         .btn-reset { background: #95a5a6; grid-column: span 2; }
 
-        /* PDF LAYOUT (VERSTECKT) */
-        #pdf-render { width: 210mm; background: white; padding: 10mm; position: absolute; left: -9999px; top: 0; color: black; visibility: hidden; }
-        .pdf-table { width: 100%; border-collapse: collapse; margin-top: 10px; }
-        .pdf-table th, .pdf-table td { border: 1px solid black; padding: 4px; font-size: 10px; text-align: center; }
+ /* PDF LAYOUT (HIDDEN) */
+        #pdf-container { position: absolute; left: -9999px; top: 0; }
+        #pdf-page { width: 794px; height: 1120px; background: white; padding: 40px; color: black; box-sizing: border-box; display: flex; flex-direction: column; }
+        .pdf-title { font-size: 24px; margin: 0 0 15px 0; border-bottom: 2px solid black; padding-bottom: 5px; text-align: left; }
+        .pdf-meta { display: flex; justify-content: space-between; margin-bottom: 15px; font-weight: bold; font-size: 14px; }
+        .pdf-table { width: 100%; border-collapse: collapse; table-layout: fixed; }
+        .pdf-table th, .pdf-table td { border: 1px solid black; padding: 5px 2px; text-align: center; font-size: 11px; }
+        .pdf-footer { margin-top: auto; display: flex; justify-content: space-between; align-items: flex-end; padding-top: 20px; border-top: 1px solid black; }
+        .pdf-summary { line-height: 2; font-size: 14px; }
+        .pdf-sig-area { text-align: center; width: 250px; }
+        .pdf-sig-line { border-bottom: 1.5px solid black; height: 80px; margin-bottom: 5px; display: flex; align-items: center; justify-content: center; }
+        .pdf-sig-line img { max-height: 75px; }
     </style>
 </head>
-<body>
-
 <div class="card">
     <h2 style="text-align:center; color:var(--green); margin-top:0;">AC ELEKTRO</h2>
     <div class="grid">
