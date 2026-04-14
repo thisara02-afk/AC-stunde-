@@ -1,184 +1,209 @@
 <!DOCTYPE html>
 <html lang="de">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Stundennachweis</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AC ELEKTRO ZEITERFASSUNG</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/signature_pad@4.0.0/dist/signature_pad.umd.min.js"></script>
+    
+    <style>
+        :root { --brand: #2c3e50; --green: #27ae60; --bg: #f1f2f6; }
+        body { font-family: 'Helvetica', Arial, sans-serif; background: var(--bg); margin: 0; padding: 10px; display: flex; flex-direction: column; align-items: center; }
+        
+        /* FORMULAR DESIGN */
+        .card { width: 100%; max-width: 480px; background: white; padding: 20px; border-radius: 12px; box-shadow: 0 5px 15px rgba(0,0,0,0.1); box-sizing: border-box; }
+        .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+        .full { grid-column: span 2; }
+        label { font-size: 13px; font-weight: bold; display: block; margin-bottom: 4px; color: var(--brand); }
+        input, select { padding: 12px; border: 1px solid #ccc; border-radius: 6px; width: 100%; font-size: 14px; }
+        
+        /* LIVE-ZUSAMMENFASSUNG IM FORMULAR */
+        .live-box { margin-top: 15px; padding: 12px; background: #fffde7; border: 1px solid #fbc02d; border-radius: 8px; font-size: 13px; }
+        .live-row { display: flex; justify-content: space-between; margin-bottom: 3px; }
+        .total-hr { border-top: 1px solid #d4ac0d; padding-top: 5px; margin-top: 5px; font-weight: bold; font-size: 15px; }
 
-<script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/signature_pad@4.0.0/dist/signature_pad.umd.min.js"></script>
+        .sig-wrapper { border: 2px dashed #ccc; border-radius: 8px; margin-top: 15px; position: relative; background: #fff; }
+        canvas { width: 100%; height: 130px; touch-action: none; }
+        
+        .btn-group { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 15px; }
+        button { padding: 14px; border: none; border-radius: 6px; font-weight: bold; cursor: pointer; color: white; }
+        .btn-save { background: var(--green); }
+        .btn-pdf { background: var(--brand); }
+        .btn-reset { background: #7f8c8d; grid-column: span 2; margin-top: 5px; }
 
-<!-- Firebase -->
-<script type="module">
-import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
-import { getFirestore, setDoc, doc, getDoc } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+        /* PDF LAYOUT (VERSTECKT) */
+        #pdf-render { position: absolute; left: -9999px; width: 210mm; background: white; padding: 15mm; color: black; box-sizing: border-box; }
+        .pdf-h1 { font-size: 22px; border-bottom: 2px solid black; padding-bottom: 5px; margin-bottom: 20px; text-transform: uppercase; }
+        .pdf-meta { display: flex; justify-content: space-between; margin-bottom: 15px; font-size: 14px; font-weight: bold; }
+        .pdf-table { width: 100%; border-collapse: collapse; margin-bottom: 20px; }
+        .pdf-table th, .pdf-table td { border: 1px solid black; padding: 4px; font-size: 11px; text-align: center; height: 18px; }
+        .pdf-table th { background: #f0f0f0; }
 
-const firebaseConfig = {
-  apiKey: "XXXX",
-  authDomain: "XXXX",
-  projectId: "XXXX",
-  storageBucket: "XXXX",
-  messagingSenderId: "XXXX",
-  appId: "XXXX"
-};
-
-const app = initializeApp(firebaseConfig);
-window.dbCloud = getFirestore(app);
-window.setDoc = setDoc;
-window.getDoc = getDoc;
-window.docRef = doc;
-</script>
-
-<style>
-body { font-family: Arial; background:#f4f6f7; margin:0; padding:10px; }
-.card { max-width:500px; margin:auto; background:white; padding:15px; border-radius:10px; }
-input, select { width:100%; padding:10px; margin:5px 0; }
-button { padding:12px; margin-top:5px; width:100%; border:none; color:white; font-weight:bold; }
-.save { background:#27ae60; }
-.pdf { background:#2980b9; }
-.load { background:#8e44ad; }
-
-table { width:100%; margin-top:20px; border-collapse:collapse; }
-td, th { border:1px solid #ccc; padding:5px; font-size:12px; text-align:center; }
-
-canvas { width:100%; height:120px; border:1px dashed #aaa; }
-</style>
+        .pdf-footer { display: flex; justify-content: space-between; align-items: flex-end; margin-top: 10px; }
+        .summary-table { width: 320px; font-size: 13px; line-height: 1.7; }
+        .sum-line { display: flex; justify-content: space-between; }
+        .sum-val { font-weight: bold; border-bottom: 1px solid black; min-width: 60px; text-align: center; }
+        
+        .sig-output { width: 250px; text-align: center; }
+        .sig-line { border-top: 1px solid black; margin-top: 5px; font-size: 12px; font-weight: bold; padding-top: 5px; }
+        #pdf-sig-img { max-height: 60px; }
+    </style>
 </head>
-
 <body>
 
 <div class="card">
-<h2>Stundennachweis</h2>
+    <h2 style="text-align:center; color:var(--green); margin-top:0;">AC ELEKTRO</h2>
+    
+    <div class="grid">
+        <div class="full"><label>Name, Vorname</label><input type="text" id="in-name" oninput="updateUI()"></div>
+        <div class="full"><label>Datum auswählen</label><input type="date" id="in-date" onchange="updateUI()"></div>
+        <div><label>Beginn</label><input type="time" id="in-start" value="07:00"></div>
+        <div><label>Ende</label><input type="time" id="in-end" value="16:00"></div>
+        <div><label>Pause (Min)</label><input type="number" id="in-pause" value="30"></div>
+        <div>
+            <label>Kategorie</label>
+            <select id="in-type">
+                <option value="work">Arbeitstag</option>
+                <option value="urlaub">Urlaub</option>
+                <option value="krank">Krankheit</option>
+                <option value="feiertag">Feiertag</option>
+            </select>
+        </div>
+        <div class="full"><label>Einsatzort / Bemerkung</label><input type="text" id="in-city"></div>
+    </div>
 
-<input id="name" placeholder="Name">
-<input type="date" id="date">
-<input type="time" id="start" value="07:00">
-<input type="time" id="end" value="16:00">
-<input type="number" id="pause" value="30">
+    <div class="live-box">
+        <div class="live-row"><span>Arbeitsstunden:</span><b id="live-w">0.00</b></div>
+        <div class="live-row"><span>Urlaub -Stunden-:</span><b id="live-u">0.00</b></div>
+        <div class="live-row"><span>Feiertag -Stunden-:</span><b id="live-f">0.00</b></div>
+        <div class="live-row"><span>Krank -Stunden-:</span><b id="live-k">0.00</b></div>
+        <div class="live-row total-hr"><span>Stunden insgesamt:</span><span id="live-total">0.00</span></div>
+    </div>
 
-<select id="type">
-<option value="work">Arbeitstag</option>
-<option value="urlaub">Urlaub</option>
-<option value="feiertag">Feiertag</option>
-<option value="krank">Krankheit</option>
-</select>
+    <div class="sig-wrapper">
+        <canvas id="sig-pad"></canvas>
+        <button style="position:absolute; top:5px; right:5px; background:#e74c3c; padding:3px 8px; font-size:10px;" onclick="pad.clear()">Löschen</button>
+    </div>
 
-<input id="note" placeholder="Bemerkung">
-
-<canvas id="sig"></canvas>
-
-<button class="save" onclick="saveData()">Speichern</button>
-<button class="load" onclick="loadCloud()">Cloud Laden</button>
-<button class="pdf" onclick="createPDF()">PDF Export</button>
-
+    <div class="btn-group">
+        <button class="btn-save" onclick="saveData()">SPEICHERN</button>
+        <button class="btn-pdf" onclick="exportPDF()">PDF EXPORT</button>
+        <button class="btn-reset" onclick="resetAll()">LÖSCHEN</button>
+    </div>
 </div>
 
-<table id="table"></table>
-
-<div id="pdf" style="display:none;">
-<h2>Monatlicher Stundennachweis</h2>
-<div id="pdfContent"></div>
+<div id="pdf-render">
+    <div class="pdf-h1">Zeiterfassung / Stundennachweis</div>
+    <div class="pdf-meta">
+        <div>Mitarbeiter: <span id="out-name" style="border-bottom:1px solid black; min-width:150px; display:inline-block;"></span></div>
+        <div>Monat / Jahr: <span id="out-month" style="border-bottom:1px solid black; min-width:80px; display:inline-block;"></span></div>
+    </div>
+    <table class="pdf-table">
+        <thead>
+            <tr>
+                <th width="30">Tag</th><th width="60">Beginn</th><th width="60">Ende</th>
+                <th width="45">Pause</th><th width="75">Arbeitsstd.</th><th>Einsatzort / Bemerkung</th>
+            </tr>
+        </thead>
+        <tbody id="pdf-body"></tbody>
+    </table>
+    <div class="pdf-footer">
+        <div class="summary-table">
+            <div class="sum-line">Arbeitsstunden: <span class="sum-val" id="sum-w">0.00</span></div>
+            <div class="sum-line">Urlaub -Stunden-: <span class="sum-val" id="sum-u">0.00</span></div>
+            <div class="sum-line">Feiertag -Stunden-: <span class="sum-val" id="sum-f">0.00</span></div>
+            <div class="sum-line">Krank -Stunden-: <span class="sum-val" id="sum-k">0.00</span></div>
+            <div class="sum-line" style="margin-top:5px; font-size:15px;"><b>Stunden insgesamt:</b> <span class="sum-val" id="sum-total">0.00</span></div>
+        </div>
+        <div class="sig-output">
+            <img id="pdf-sig-img" src="">
+            <div class="sig-line">Unterschrift des Mitarbeiters</div>
+        </div>
+    </div>
 </div>
 
 <script>
-let db = JSON.parse(localStorage.getItem("db")) || {};
-const pad = new SignaturePad(document.getElementById("sig"));
+    let db = JSON.parse(localStorage.getItem('ac_elektro_final_v1')) || {};
+    const canvas = document.getElementById("sig-pad");
+    const pad = new SignaturePad(canvas);
 
-function saveData() {
-    const d = document.getElementById("date").value;
-    const name = document.getElementById("name").value || "user";
-    if(!d) return alert("Datum fehlt");
+    window.onload = () => {
+        document.getElementById('in-date').value = new Date().toISOString().split('T')[0];
+        updateUI();
+    };
 
-    const [y,m,day] = d.split("-");
-    const s = document.getElementById("start").value;
-    const e = document.getElementById("end").value;
-    const p = parseInt(document.getElementById("pause").value)||0;
-    const t = document.getElementById("type").value;
-    const n = document.getElementById("note").value;
+    function updateUI() {
+        const dVal = document.getElementById('in-date').value;
+        if(!dVal) return;
+        const [y, m] = dVal.split('-');
+        const lastDay = new Date(y, m, 0).getDate();
+        
+        document.getElementById('out-name').innerText = document.getElementById('in-name').value;
+        document.getElementById('out-month').innerText = `${m} / ${y}`;
 
-    let net=0, ot=0;
+        const tbody = document.getElementById('pdf-body');
+        tbody.innerHTML = "";
+        
+        let w=0, u=0, f=0, k=0;
 
-    if(t==="work"){
-        const [sh,sm]=s.split(":").map(Number);
-        const [eh,em]=e.split(":").map(Number);
-        let diff=(eh*60+em)-(sh*60+sm);
-        if(diff<=0) diff+=1440;
-        net=diff-p;
-        if(net>510){ ot=net-510; net=510;}
-    } else {
-        net=510;
+        for(let i=1; i<=31; i++) {
+            const key = `${y}-${m}-${i}`;
+            const row = (i <= lastDay) ? (db[key] || {}) : { empty: true };
+            
+            tbody.innerHTML += `<tr style="${row.empty ? 'color:transparent;' : ''}">
+                <td>${i}</td><td>${row.s || ''}</td><td>${row.e || ''}</td>
+                <td>${row.p ? row.p+'m' : ''}</td>
+                <td>${row.h ? row.h.toFixed(2) : ''}</td>
+                <td style="text-align:left; padding-left:5px;">${row.c || ''}</td>
+            </tr>`;
+
+            if(row.h) {
+                if(row.t === 'work') w += row.h;
+                else if(row.t === 'urlaub') u += row.h;
+                else if(row.t === 'feiertag') f += row.h;
+                else if(row.t === 'krank') k += row.h;
+            }
+        }
+
+        const total = w + u + f + k;
+        document.getElementById('live-w').innerText = document.getElementById('sum-w').innerText = w.toFixed(2);
+        document.getElementById('live-u').innerText = document.getElementById('sum-u').innerText = u.toFixed(2);
+        document.getElementById('live-f').innerText = document.getElementById('sum-f').innerText = f.toFixed(2);
+        document.getElementById('live-k').innerText = document.getElementById('sum-k').innerText = k.toFixed(2);
+        document.getElementById('live-total').innerText = document.getElementById('sum-total').innerText = total.toFixed(2);
     }
 
-    db[d]={s,e,p,net,ot,t,n};
-    localStorage.setItem("db",JSON.stringify(db));
+    function saveData() {
+        const d = document.getElementById('in-date').value;
+        if(!d) return;
+        const [y, m, day] = d.split('-');
+        const s = document.getElementById('in-start').value, e = document.getElementById('in-end').value;
+        const p = parseInt(document.getElementById('input-pause')) || 0; // Fixed from incorrect ID
+        const pVal = parseInt(document.getElementById('in-pause').value) || 0;
+        const t = document.getElementById('in-type').value;
+        const c = document.getElementById('in-city').value;
+        
+        let hrs = 0;
+        if(t === 'work') {
+            const [sh, sm] = s.split(':').map(Number), [eh, em] = e.split(':').map(Number);
+            hrs = ((eh * 60 + em) - (sh * 60 + sm) - pVal) / 60;
+        } else { hrs = 8.5; }
 
-    // CLOUD
-    setDoc(docRef(dbCloud,"times",name+"_"+d),db[d]);
-
-    render();
-}
-
-async function loadCloud(){
-    const name=document.getElementById("name").value||"user";
-    const d=document.getElementById("date").value;
-    if(!d) return;
-
-    const [y,m]=d.split("-");
-    for(let i=1;i<=31;i++){
-        let id=name+"_"+y+"-"+m+"-"+String(i).padStart(2,"0");
-        let snap=await getDoc(docRef(dbCloud,"times",id));
-        if(snap.exists()) db[id.split("_")[1]]=snap.data();
+        db[`${y}-${m}-${parseInt(day)}`] = { s, e, p: pVal, h: hrs, c, t };
+        localStorage.setItem('ac_elektro_final_v1', JSON.stringify(db));
+        updateUI();
+        alert("Daten erfolgreich gespeichert!");
     }
 
-    localStorage.setItem("db",JSON.stringify(db));
-    render();
-}
+    function resetAll() { if(confirm("Möchten Sie wirklich alle Daten löschen?")) { localStorage.removeItem('ac_elektro_final_v1'); db={}; updateUI(); } }
 
-function render(){
-    let html="<tr><th>Datum</th><th>Stunden</th><th>Typ</th></tr>";
-
-    let sum={work:0,urlaub:0,feiertag:0,krank:0,ot:0};
-
-    // 🔥 sort dates
-    let keys = Object.keys(db).sort();
-
-    keys.forEach(d => {
-        let r = db[d];
-
-        html += `
-        <tr>
-            <td>${d}</td>
-            <td>${(r.net/60).toFixed(2)}</td>
-            <td>${r.t}</td>
-        </tr>`;
-
-        if(r.t==="work"){ 
-            sum.work+=r.net; 
-            sum.ot+=r.ot;
-        }
-        else {
-            sum[r.t]+=r.net;
-        }
-    });
-
-    document.getElementById("table").innerHTML = html;
-
-    document.getElementById("pdfContent").innerHTML = `
-    Arbeitsstunden: ${(sum.work/60).toFixed(2)}h<br>
-    Urlaub: ${(sum.urlaub/60).toFixed(2)}h<br>
-    Feiertag: ${(sum.feiertag/60).toFixed(2)}h<br>
-    Krankheit: ${(sum.krank/60).toFixed(2)}h<br>
-    Überstunden: ${(sum.ot/60).toFixed(2)}h
-    `;
-}
-
-function createPDF(){
-    if(pad.isEmpty()) return alert("Bitte unterschreiben");
-    html2pdf().from(document.getElementById("pdf")).save();
-}
-
-render();
+    function exportPDF() {
+        if(pad.isEmpty()) return alert("Bitte unterschreiben Sie zuerst!");
+        document.getElementById('pdf-sig-img').src = pad.toDataURL();
+        const element = document.getElementById('pdf-render');
+        html2pdf().set({ margin: 0, filename: 'Stundennachweis.pdf', html2canvas: { scale: 2 }, jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' } }).from(element).save();
+    }
 </script>
-
 </body>
 </html>
