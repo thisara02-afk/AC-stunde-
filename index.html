@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>AC ELEKTRO V40</title>
+    <title>AC ELEKTRO V41</title>
     <script src="https://cdn.jsdelivr.net/npm/signature_pad@4.0.0/dist/signature_pad.umd.min.js"></script>
     
     <style>
@@ -26,7 +26,7 @@
         .row-filled { background-color: #e8f5e9; font-weight: bold; }
         .row-spec { background-color: #fffde7 !important; }
 
-        .summary-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-top: 15px; padding: 10px; background: #fff3e0; border-radius: 10px; border: 1px solid #ffb74d; font-size: 12px; }
+        .summary-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-top: 15px; padding: 10px; background: #e3f2fd; border-radius: 10px; border: 1px solid #2196f3; font-size: 12px; }
 
         .sig-wrapper { border: 2px dashed #ccc; border-radius: 8px; margin-top: 10px; background: #fff; height: 120px; position: relative; }
         canvas { width: 100%; height: 100%; touch-action: none; }
@@ -37,7 +37,6 @@
         .btn-pdf { background: var(--blue); }
         .btn-reset { background: #95a5a6; grid-column: span 2; }
 
-        /* PDF / DRUCK OPTIMIERUNG */
         #print-area { display: none; }
         @media print {
             @page { size: A4; margin: 10mm; }
@@ -53,7 +52,7 @@
 <body>
 
 <div class="card no-print">
-    <h3 style="text-align:center; color:var(--green); margin:0 0 10px 0;">AC ELEKTRO ZEITERFASSUNG</h3>
+    <h3 style="text-align:center; color:var(--brand); margin:0 0 10px 0;">AC ELEKTRO</h3>
     <div class="grid">
         <div class="full"><label>Name</label><input type="text" id="in-name" oninput="updateUI()"></div>
         <div class="full"><label>Datum</label><input type="date" id="in-date" onchange="updateUI()"></div>
@@ -75,9 +74,10 @@
     <div class="summary-grid">
         <div>Arbeit: <b id="v-w">0.00</b> h</div>
         <div style="color:red;">Überstunden: <b id="v-ot">0.00</b> h</div>
-        <div class="full" style="border-top:1px solid #ffb74d; margin-top:4px; padding-top:4px;">
-            <b>Gesamt: <span id="v-total">0.00</span> h</b> (inkl. Urlaub/Krank)
-        </div>
+        <div>Urlaub: <b id="v-u">0.00</b> h</div>
+        <div>Krank: <b id="v-k">0.00</b> h</div>
+        <div>Feiertag: <b id="v-f">0.00</b> h</div>
+        <div style="border-top:1px solid #2196f3; padding-top:4px;"><b>Gesamt: <span id="v-total">0.00</span> h</b></div>
     </div>
 
     <div class="sig-wrapper">
@@ -88,7 +88,7 @@
     <div class="btn-group">
         <button class="btn-save" onclick="saveData()">SPEICHERN</button>
         <button class="btn-pdf" onclick="printPDF()">PDF ERSTELLEN</button>
-        <button class="btn-reset" onclick="resetAll()">ALLES LÖSCHEN</button>
+        <button class="btn-reset" onclick="resetAll()">MONAT LÖSCHEN</button>
     </div>
 </div>
 
@@ -111,14 +111,13 @@
         </thead>
         <tbody id="p-body"></tbody>
     </table>
-    <div style="display:flex; justify-content:space-between; margin-top:15px; font-size:11px;">
-        <div>
-            Arbeitsstunden: <b id="ps-w">0.00</b> h<br>
-            Überstunden (+): <b id="ps-ot">0.00</b> h<br>
-            Urlaub/Krank/Feiertag: <b id="ps-spec">0.00</b> h<br>
-            <span style="font-size:13px;"><b>Gesamtstunden: <span id="ps-total">0.00</span> h</b></span>
+    <div style="display:flex; justify-content:space-between; margin-top:15px; font-size:10px;">
+        <div style="line-height:1.4;">
+            Arbeit: <b id="ps-w">0.00</b> h | Überstunden (+): <b id="ps-ot">0.00</b> h<br>
+            Urlaub: <b id="ps-u">0.00</b> h | Krank: <b id="ps-k">0.00</b> h | Feiertag: <b id="ps-f">0.00</b> h<br>
+            <span style="font-size:12px;"><b>Gesamtstunden: <span id="ps-total">0.00</span> h</b></span>
         </div>
-        <div style="text-align:center; width:200px;">
+        <div style="text-align:center; width:180px;">
             <img id="p-sig" style="max-height:50px; border-bottom:1px solid black; min-width:120px;"><br>
             Unterschrift
         </div>
@@ -126,7 +125,7 @@
 </div>
 
 <script>
-    let db = JSON.parse(localStorage.getItem('ace_v40_db')) || {};
+    let db = JSON.parse(localStorage.getItem('ace_v41_db')) || {};
     const canvas = document.getElementById("sig-pad");
     const pad = new SignaturePad(canvas);
     const tage = ["So", "Mo", "Di", "Mi", "Do", "Fr", "Sa"];
@@ -146,7 +145,7 @@
         document.getElementById('p-name').innerText = document.getElementById('in-name').value || "________________";
         document.getElementById('p-month').innerText = `${m} / ${y}`;
 
-        let w=0, ot=0, spec=0;
+        let w=0, ot=0, u=0, k=0, f=0;
         const lb = document.getElementById('live-body'), pb = document.getElementById('p-body');
         lb.innerHTML = pb.innerHTML = "";
 
@@ -170,13 +169,17 @@
 
             if(row.h) {
                 if(row.t === 'work') { w += row.h; ot += (row.ot || 0); }
-                else { spec += row.h; }
+                else if(row.t === 'urlaub') { u += row.h; }
+                else if(row.t === 'krank') { k += row.h; }
+                else if(row.t === 'feiertag') { f += row.h; }
             }
         }
         document.getElementById('v-w').innerText = document.getElementById('ps-w').innerText = w.toFixed(2);
         document.getElementById('v-ot').innerText = document.getElementById('ps-ot').innerText = ot.toFixed(2);
-        document.getElementById('ps-spec').innerText = spec.toFixed(2);
-        document.getElementById('v-total').innerText = document.getElementById('ps-total').innerText = (w + ot + spec).toFixed(2);
+        document.getElementById('v-u').innerText = document.getElementById('ps-u').innerText = u.toFixed(2);
+        document.getElementById('v-k').innerText = document.getElementById('ps-k').innerText = k.toFixed(2);
+        document.getElementById('v-f').innerText = document.getElementById('ps-f').innerText = f.toFixed(2);
+        document.getElementById('v-total').innerText = document.getElementById('ps-total').innerText = (w + ot + u + k + f).toFixed(2);
     }
 
     function saveData() {
@@ -200,7 +203,7 @@
         } else { h = (dow === 5) ? 5.0 : 8.5; }
 
         db[`${y}-${m}-${parseInt(day)}`] = { s, e, p, h, ot: over, c, t };
-        localStorage.setItem('ace_v40_db', JSON.stringify(db));
+        localStorage.setItem('ace_v41_db', JSON.stringify(db));
         updateUI();
         alert("Tag gespeichert!");
     }
