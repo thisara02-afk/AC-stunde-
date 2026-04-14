@@ -82,12 +82,12 @@
 </div>
 
 <div class="preview-container">
-    <div class="preview-title">Vorschau: Monatsliste</div>
+    <div class="preview-title">Monatsübersicht (Freitagsregelung aktiv)</div>
     <div class="scroll-box">
         <table>
             <thead>
                 <tr>
-                    <th>Tag</th><th>Art</th><th>Beginn</th><th>Ende</th><th>Pause</th><th>Netto Std.</th><th style="color:red;">Überst.</th><th>Einsatzort</th>
+                    <th>Tag</th><th>Kategorie</th><th>Beginn</th><th>Ende</th><th>Pause</th><th>Regulär</th><th style="color:red;">Überst.</th><th>Ort</th>
                 </tr>
             </thead>
             <tbody id="live-body"></tbody>
@@ -112,17 +112,14 @@
     </div>
     <table class="pdf-table">
         <thead>
-            <tr><th>Tag</th><th>Kategorie</th><th>Beginn</th><th>Ende</th><th>Pause</th><th>Netto</th><th>Überst.</th><th>Einsatzort</th></tr>
+            <tr><th>Tag</th><th>Art</th><th>Von</th><th>Bis</th><th>Pause</th><th>Reg.</th><th>Überst.</th><th>Bemerkung</th></tr>
         </thead>
         <tbody id="p-body"></tbody>
     </table>
     <div class="pdf-footer">
         <div style="font-size:11px; line-height:1.6; border: 1px solid black; padding: 10px; border-radius: 5px;">
-            Reguläre Arbeit: <b id="ps-w">0.00</b> h | 
-            Überstunden (+): <b id="ps-ot">0.00</b> h<br>
-            Urlaub: <b id="ps-u">0.00</b> h | 
-            Krank: <b id="ps-k">0.00</b> h | 
-            Feiertag: <b id="ps-f">0.00</b> h<br>
+            Arbeit (Reg.): <b id="ps-w">0.00</b> h | Überstunden: <b id="ps-ot">0.00</b> h<br>
+            Urlaub: <b id="ps-u">0.00</b> h | Krank: <b id="ps-k">0.00</b> h | Feiertag: <b id="ps-f">0.00</b> h<br>
             <span style="font-size:14px;"><b>GESAMTSUMME: <span id="ps-total">0.00</span> h</b></span>
         </div>
         <div style="text-align:center; width:200px;">
@@ -133,7 +130,7 @@
 </div>
 
 <script>
-    let db = JSON.parse(localStorage.getItem('ace_v12_db')) || {};
+    let db = JSON.parse(localStorage.getItem('ace_v13_db')) || {};
     const canvas = document.getElementById("sig-pad");
     const pad = new SignaturePad(canvas);
 
@@ -183,45 +180,55 @@
         }
 
         const total = w + ot + u + k + f;
-        const sets = [
-            ['st-w', 'ps-w', w], ['st-ot', 'ps-ot', ot],
-            ['st-u', 'ps-u', u], ['st-k', 'ps-k', k],
-            ['st-f', 'ps-f', f], ['st-total', 'ps-total', total]
-        ];
-        sets.forEach(s => {
-            document.getElementById(s[0]).innerText = s[2].toFixed(2);
-            document.getElementById(s[1]).innerText = s[2].toFixed(2);
-        });
+        const ids = ['st-w', 'st-ot', 'st-u', 'st-k', 'st-f', 'st-total', 'ps-w', 'ps-ot', 'ps-u', 'ps-k', 'ps-f', 'ps-total'];
+        const vals = [w, ot, u, k, f, total, w, ot, u, k, f, total];
+        ids.forEach((id, idx) => document.getElementById(id).innerText = vals[idx].toFixed(2));
     }
 
     function saveData() {
-        const d = document.getElementById('in-date').value;
-        const [y, m, day] = d.split('-');
+        const dStr = document.getElementById('in-date').value;
+        const [y, m, day] = dStr.split('-');
+        const dateObj = new Date(dStr);
+        const dayOfWeek = dateObj.getDay(); // 5 = Freitag
+
         const s = document.getElementById('in-start').value, e = document.getElementById('in-end').value;
         const pVal = parseInt(document.getElementById('in-pause').value) || 0;
         const t = document.getElementById('in-type').value;
         const c = document.getElementById('in-city').value;
         
         let netto = 0, over = 0;
+        
         if(t === 'work') {
             const [sh, sm] = s.split(':').map(Number), [eh, em] = e.split(':').map(Number);
             let totalHrs = ((eh * 60 + em) - (sh * 60 + sm) - pVal) / 60;
-            if(totalHrs > 8.5) { netto = 8.5; over = totalHrs - 8.5; } 
-            else { netto = totalHrs; over = 0; }
+            
+            // Freitagsregelung: Überstunden ab 5 Stunden (12:00 Uhr bei 07:00 Beginn)
+            // Andere Tage: Überstunden ab 8,5 Stunden
+            let limit = (dayOfWeek === 5) ? 5.0 : 8.5;
+            
+            if(totalHrs > limit) {
+                netto = limit;
+                over = totalHrs - limit;
+            } else {
+                netto = totalHrs;
+                over = 0;
+            }
         } else {
-            netto = 8.5; // Standard für Urlaub/Krank/Feiertag
+            // Bei Urlaub/Krank/Feiertag:
+            // Freitag zählt als 5 Std., andere Tage als 8,5 Std.
+            netto = (dayOfWeek === 5) ? 5.0 : 8.5;
         }
 
         db[`${y}-${m}-${parseInt(day)}`] = { s, e, p: pVal, h: netto, ot: over, c, t };
-        localStorage.setItem('ace_v12_db', JSON.stringify(db));
+        localStorage.setItem('ace_v13_db', JSON.stringify(db));
         updateUI();
-        alert("Gespeichert!");
+        alert("Erfolgreich gespeichert!");
     }
 
-    function resetAll() { if(confirm("Alle Daten löschen?")) { localStorage.removeItem('ace_v12_db'); db={}; updateUI(); } }
+    function resetAll() { if(confirm("Möchten Sie wirklich den ganzen Monat löschen?")) { localStorage.removeItem('ace_v13_db'); db={}; updateUI(); } }
 
     function exportPDF() {
-        if(pad.isEmpty()) return alert("Bitte unterschreiben!");
+        if(pad.isEmpty()) return alert("Unterschrift fehlt!");
         document.getElementById('p-sig').src = pad.toDataURL();
         const element = document.getElementById('pdf-render');
         html2pdf().set({ margin: 5, filename: 'AC_Stundennachweis.pdf', html2canvas: { scale: 2 }, jsPDF: { format: 'a4', orientation: 'portrait' } }).from(element).save();
