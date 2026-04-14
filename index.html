@@ -3,8 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>AC ELEKTRO V34</title>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+    <title>AC ELEKTRO V35</title>
     <script src="https://cdn.jsdelivr.net/npm/signature_pad@4.0.0/dist/signature_pad.umd.min.js"></script>
     
     <style>
@@ -17,14 +16,13 @@
         label { font-size: 12px; font-weight: bold; color: var(--brand); }
         input, select { padding: 10px; border: 1px solid #ccc; border-radius: 6px; width: 100%; font-size: 14px; box-sizing: border-box; }
         
-        /* LIVE VORSCHAU */
+        /* LIVE TABELLE (IMMER SICHTBAR) */
         .preview-container { width: 100%; max-width: 900px; margin-top: 20px; background: white; padding: 15px; border-radius: 12px; box-shadow: 0 2px 10px rgba(0,0,0,0.05); }
         .scroll-box { width: 100%; overflow-x: auto; border: 1px solid #eee; border-radius: 8px; }
-        table { width: 100%; border-collapse: collapse; min-width: 700px; }
+        table { width: 100%; border-collapse: collapse; min-width: 600px; }
         th, td { border: 1px solid #eee; padding: 8px; text-align: center; font-size: 12px; }
         .row-yellow { background-color: #fffde7 !important; font-weight: bold; }
 
-        /* SUMMEN BOX */
         .summary-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-top: 15px; padding: 12px; background: #e8f4fd; border-radius: 10px; border: 1px solid #3498db; font-size: 13px; }
 
         .sig-wrapper { border: 2px dashed #ccc; border-radius: 8px; margin-top: 15px; background: #fff; height: 140px; position: relative; }
@@ -36,19 +34,23 @@
         .btn-pdf { background: var(--blue); }
         .btn-reset { background: #95a5a6; grid-column: span 2; }
 
-        /* PDF LAYOUT - SICHTBARKEITS FIX */
-        #pdf-render { 
-            width: 210mm; background: white; padding: 10mm; 
-            position: fixed; left: 0; top: 0; 
-            z-index: -9999; visibility: hidden; color: black;
+        /* DRUCK-LAYOUT (Wird nur beim Drucken/PDF-Speichern aktiv) */
+        @media print {
+            body * { visibility: hidden; }
+            #print-area, #print-area * { visibility: visible; }
+            #print-area { position: absolute; left: 0; top: 0; width: 100%; color: black; }
+            .no-print { display: none; }
+            table { width: 100%; border-collapse: collapse; }
+            th, td { border: 1px solid black !important; padding: 4px !important; font-size: 10px !important; }
         }
-        .pdf-table { width: 100%; border-collapse: collapse; margin-top: 10px; }
-        .pdf-table th, .pdf-table td { border: 1px solid black; padding: 4px; font-size: 10px; text-align: center; }
+
+        #print-area { display: none; }
+        @media print { #print-area { display: block; } }
     </style>
 </head>
 <body>
 
-<div class="card">
+<div class="card no-print">
     <h2 style="text-align:center; color:var(--green); margin-top:0;">AC ELEKTRO</h2>
     <div class="grid">
         <div class="full"><label>Name, Vorname</label><input type="text" id="in-name" oninput="updateUI()"></div>
@@ -71,9 +73,8 @@
     <div class="summary-grid">
         <div>Arbeit: <b id="v-w">0.00</b></div>
         <div>Überstunden: <b id="v-ot">0.00</b></div>
-        <div>Urlaub: <b id="v-u">0.00</b></div>
         <div>Krankheit: <b id="v-k">0.00</b></div>
-        <div class="full">Feiertage: <b id="v-f">0.00</b></div>
+        <div>Feiertag: <b id="v-f">0.00</b></div>
         <div class="full" style="border-top:1px solid #3498db; padding-top:5px;"><b>Gesamt: <span id="v-total">0.00</span></b></div>
     </div>
 
@@ -83,49 +84,48 @@
     </div>
     <div class="btn-group">
         <button class="btn-save" onclick="saveData()">SPEICHERN</button>
-        <button class="btn-pdf" onclick="exportPDF()">PDF EXPORT</button>
+        <button class="btn-pdf" onclick="window.print()">PDF / DRUCKEN</button>
         <button class="btn-reset" onclick="resetAll()">LÖSCHEN</button>
     </div>
 </div>
 
-<div class="preview-container">
+<div class="preview-container no-print">
     <div class="scroll-box">
         <table>
             <thead>
-                <tr><th>Tag</th><th>Beginn</th><th>Ende</th><th>Netto</th><th>Überst.</th><th>Ort</th></tr>
+                <tr><th>Tag</th><th>Von</th><th>Bis</th><th>Std.</th><th>Überst.</th><th>Ort</th></tr>
             </thead>
             <tbody id="live-body"></tbody>
         </table>
     </div>
 </div>
 
-<div id="pdf-render">
-    <h2 style="border-bottom: 2px solid black;">STUNDENNACHWEIS</h2>
-    <div style="display:flex; justify-content:space-between; margin-bottom: 10px;">
-        <span>Name: <b id="p-name"></b></span>
-        <span>Monat: <b id="p-month"></b></span>
-    </div>
-    <table class="pdf-table">
+<div id="print-area">
+    <h2 style="border-bottom: 2px solid black;">STUNDENNACHWEIS AC ELEKTRO</h2>
+    <p>Mitarbeiter: <b id="p-name"></b> | Monat: <b id="p-month"></b></p>
+    <table>
         <thead>
-            <tr><th>Tag</th><th>Beginn</th><th>Ende</th><th>Pause</th><th>Std.</th><th>Überst.</th><th>Ort</th></tr>
+            <tr><th>Tag</th><th>Beginn</th><th>Ende</th><th>Pause</th><th>Netto</th><th>Überst.</th><th>Einsatzort</th></tr>
         </thead>
         <tbody id="p-body"></tbody>
     </table>
-    <div style="display:flex; justify-content:space-between; margin-top: 20px;">
-        <div style="font-size:12px; line-height:1.6;">
-            Arbeitsstunden: <b id="ps-w">0.00</b> h | Überstunden: <b id="ps-ot">0.00</b> h<br>
-            Urlaub: <b id="ps-u">0.00</b> h | Krank: <b id="ps-k">0.00</b> h | Feiertag: <b id="ps-f">0.00</b> h<br>
-            <b style="font-size:14px;">Gesamt: <span id="ps-total">0.00</span> h</b>
+    <div style="margin-top: 20px; display: flex; justify-content: space-between;">
+        <div style="font-size: 12px; line-height: 1.5;">
+            Arbeitsstunden: <b id="ps-w">0.00</b> h<br>
+            Krankheit: <b id="ps-k">0.00</b> h<br>
+            Urlaub/Feiertag: <b id="ps-uf">0.00</b> h<br>
+            Überstunden (+): <b id="ps-ot">0.00</b> h<br>
+            <b>Gesamt: <span id="ps-total">0.00</span> h</b>
         </div>
-        <div style="text-align:center;">
-            <img id="p-sig" style="max-height:60px; min-width:150px; border-bottom:1px solid black;"><br>
-            <small>Unterschrift</small>
+        <div style="text-align: center; width: 200px;">
+            <img id="p-sig" style="max-height: 70px; border-bottom: 1px solid black;"><br>
+            <b>Unterschrift</b>
         </div>
     </div>
 </div>
 
 <script>
-    let db = JSON.parse(localStorage.getItem('ace_v34_db')) || {};
+    let db = JSON.parse(localStorage.getItem('ace_v35_db')) || {};
     const canvas = document.getElementById("sig-pad");
     const pad = new SignaturePad(canvas);
 
@@ -153,8 +153,7 @@
             const isSpec = (row.t && row.t !== 'work') ? 'class="row-yellow"' : '';
             const html = `<tr ${isSpec}>
                 <td>${i}</td><td>${row.s || ''}</td><td>${row.e || ''}</td>
-                <td>${row.p ? row.p+'m' : ''}</td>
-                <td>${row.h ? row.h.toFixed(2) : ''}</td>
+                <td>${row.p || ''}</td><td>${row.h ? row.h.toFixed(2) : ''}</td>
                 <td style="color:red;">${row.ot > 0 ? row.ot.toFixed(2) : ''}</td>
                 <td>${row.c || ''}</td>
             </tr>`;
@@ -167,13 +166,14 @@
                 else if(row.t==='feiertag') f += row.h;
             }
         }
-        const total = w + ot + u + k + f;
         document.getElementById('v-w').innerText = document.getElementById('ps-w').innerText = w.toFixed(2);
         document.getElementById('v-ot').innerText = document.getElementById('ps-ot').innerText = ot.toFixed(2);
-        document.getElementById('v-u').innerText = document.getElementById('ps-u').innerText = u.toFixed(2);
         document.getElementById('v-k').innerText = document.getElementById('ps-k').innerText = k.toFixed(2);
-        document.getElementById('v-f').innerText = document.getElementById('ps-f').innerText = f.toFixed(2);
-        document.getElementById('v-total').innerText = document.getElementById('ps-total').innerText = total.toFixed(2);
+        document.getElementById('v-f').innerText = f.toFixed(2);
+        document.getElementById('ps-uf').innerText = (u + f).toFixed(2);
+        document.getElementById('v-total').innerText = document.getElementById('ps-total').innerText = (w + ot + u + k + f).toFixed(2);
+        
+        if(!pad.isEmpty()) document.getElementById('p-sig').src = pad.toDataURL();
     }
 
     function saveData() {
@@ -182,8 +182,7 @@
         const [y, m, day] = dStr.split('-');
         const dow = new Date(dStr).getDay();
         const s = document.getElementById('in-start').value, e = document.getElementById('in-end').value;
-        const p = parseInt(document.getElementById('in-pause').value) || 0;
-        const t = document.getElementById('in-type').value, c = document.getElementById('in-city').value;
+        const p = parseInt(document.getElementById('in-pause').value) || 0, t = document.getElementById('in-type').value, c = document.getElementById('in-city').value;
         
         let h = 0, over = 0;
         if(t === 'work') {
@@ -194,32 +193,9 @@
         } else { h = (dow === 5) ? 5.0 : 8.5; }
 
         db[`${y}-${m}-${parseInt(day)}`] = { s, e, p, h, ot: over, c, t };
-        localStorage.setItem('ace_v34_db', JSON.stringify(db));
+        localStorage.setItem('ace_v35_db', JSON.stringify(db));
         updateUI();
-    }
-
-    function exportPDF() {
-        if(pad.isEmpty()) return alert("Bitte erst unterschreiben!");
-        const element = document.getElementById('pdf-render');
-        document.getElementById('p-sig').src = pad.toDataURL('image/png');
-        
-        // Den Export-Bereich kurz "echt" sichtbar machen für den Browser
-        element.style.visibility = 'visible';
-        element.style.zIndex = '10000';
-
-        const opt = {
-            margin: 5,
-            filename: 'AC_Zeiterfassung.pdf',
-            html2canvas: { scale: 2, useCORS: true },
-            jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
-        };
-
-        setTimeout(() => {
-            html2pdf().set(opt).from(element).save().then(() => {
-                element.style.visibility = 'hidden';
-                element.style.zIndex = '-9999';
-            });
-        }, 1000); // 1 Sekunde warten
+        alert("Gespeichert!");
     }
 
     function resetAll() { if(confirm("Alles löschen?")) { localStorage.clear(); location.reload(); } }
