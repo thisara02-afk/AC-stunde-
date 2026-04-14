@@ -11,17 +11,16 @@
         :root { --brand: #2c3e50; --green: #27ae60; --bg: #f1f2f6; }
         body { font-family: 'Helvetica', Arial, sans-serif; background: var(--bg); margin: 0; padding: 10px; display: flex; flex-direction: column; align-items: center; }
         
-        /* FORMULAR DESIGN */
         .card { width: 100%; max-width: 480px; background: white; padding: 20px; border-radius: 12px; box-shadow: 0 5px 15px rgba(0,0,0,0.1); box-sizing: border-box; }
         .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
         .full { grid-column: span 2; }
         label { font-size: 13px; font-weight: bold; display: block; margin-bottom: 4px; color: var(--brand); }
         input, select { padding: 12px; border: 1px solid #ccc; border-radius: 6px; width: 100%; font-size: 14px; }
         
-        /* LIVE-ZUSAMMENFASSUNG IM FORMULAR */
-        .live-box { margin-top: 15px; padding: 12px; background: #fffde7; border: 1px solid #fbc02d; border-radius: 8px; font-size: 13px; }
-        .live-row { display: flex; justify-content: space-between; margin-bottom: 3px; }
-        .total-hr { border-top: 1px solid #d4ac0d; padding-top: 5px; margin-top: 5px; font-weight: bold; font-size: 15px; }
+        /* LIVE-TABELLE IM FORMULAR */
+        .live-summary-table { width: 100%; margin-top: 20px; border-collapse: collapse; background: #fffde7; border-radius: 8px; overflow: hidden; border: 1px solid #fbc02d; }
+        .live-summary-table td { padding: 10px; border-bottom: 1px solid #eee; font-size: 14px; }
+        .live-summary-table .total-row { background: #fbc02d; font-weight: bold; font-size: 16px; }
 
         .sig-wrapper { border: 2px dashed #ccc; border-radius: 8px; margin-top: 15px; position: relative; background: #fff; }
         canvas { width: 100%; height: 130px; touch-action: none; }
@@ -37,13 +36,13 @@
         .pdf-h1 { font-size: 22px; border-bottom: 2px solid black; padding-bottom: 5px; margin-bottom: 20px; text-transform: uppercase; }
         .pdf-meta { display: flex; justify-content: space-between; margin-bottom: 15px; font-size: 14px; font-weight: bold; }
         .pdf-table { width: 100%; border-collapse: collapse; margin-bottom: 20px; }
-        .pdf-table th, .pdf-table td { border: 1px solid black; padding: 4px; font-size: 11px; text-align: center; height: 18px; }
+        .pdf-table th, .pdf-table td { border: 1px solid black; padding: 4px; font-size: 11px; text-align: center; }
         .pdf-table th { background: #f0f0f0; }
 
         .pdf-footer { display: flex; justify-content: space-between; align-items: flex-end; margin-top: 10px; }
-        .summary-table { width: 320px; font-size: 13px; line-height: 1.7; }
-        .sum-line { display: flex; justify-content: space-between; }
-        .sum-val { font-weight: bold; border-bottom: 1px solid black; min-width: 60px; text-align: center; }
+        .summary-table-pdf { width: 320px; font-size: 13px; border-collapse: collapse; }
+        .summary-table-pdf td { padding: 3px 0; }
+        .sum-line-val { font-weight: bold; border-bottom: 1px solid black; min-width: 60px; text-align: center; display: inline-block; }
         
         .sig-output { width: 250px; text-align: center; }
         .sig-line { border-top: 1px solid black; margin-top: 5px; font-size: 12px; font-weight: bold; padding-top: 5px; }
@@ -73,13 +72,13 @@
         <div class="full"><label>Einsatzort / Bemerkung</label><input type="text" id="in-city"></div>
     </div>
 
-    <div class="live-box">
-        <div class="live-row"><span>Arbeitsstunden:</span><b id="live-w">0.00</b></div>
-        <div class="live-row"><span>Urlaub -Stunden-:</span><b id="live-u">0.00</b></div>
-        <div class="live-row"><span>Feiertag -Stunden-:</span><b id="live-f">0.00</b></div>
-        <div class="live-row"><span>Krank -Stunden-:</span><b id="live-k">0.00</b></div>
-        <div class="live-row total-hr"><span>Stunden insgesamt:</span><span id="live-total">0.00</span></div>
-    </div>
+    <table class="live-summary-table">
+        <tr><td>Arbeitsstunden:</td><td style="text-align:right;"><b id="live-w">0.00</b> h</td></tr>
+        <tr><td>Urlaub -Stunden-:</td><td style="text-align:right;"><b id="live-u">0.00</b> h</td></tr>
+        <tr><td>Feiertag -Stunden-:</td><td style="text-align:right;"><b id="live-f">0.00</b> h</td></tr>
+        <tr><td>Krank -Stunden-:</td><td style="text-align:right;"><b id="live-k">0.00</b> h</td></tr>
+        <tr class="total-row"><td>Stunden insgesamt:</td><td style="text-align:right;"><span id="live-total">0.00</span> h</td></tr>
+    </table>
 
     <div class="sig-wrapper">
         <canvas id="sig-pad"></canvas>
@@ -109,13 +108,14 @@
         <tbody id="pdf-body"></tbody>
     </table>
     <div class="pdf-footer">
-        <div class="summary-table">
-            <div class="sum-line">Arbeitsstunden: <span class="sum-val" id="sum-w">0.00</span></div>
-            <div class="sum-line">Urlaub -Stunden-: <span class="sum-val" id="sum-u">0.00</span></div>
-            <div class="sum-line">Feiertag -Stunden-: <span class="sum-val" id="sum-f">0.00</span></div>
-            <div class="sum-line">Krank -Stunden-: <span class="sum-val" id="sum-k">0.00</span></div>
-            <div class="sum-line" style="margin-top:5px; font-size:15px;"><b>Stunden insgesamt:</b> <span class="sum-val" id="sum-total">0.00</span></div>
-        </div>
+        <table class="summary-table-pdf">
+            <tr><td>Arbeitsstunden:</td><td><span class="sum-line-val" id="sum-w">0.00</span> h</td></tr>
+            <tr><td>Urlaub -Stunden-:</td><td><span class="sum-line-val" id="sum-u">0.00</span> h</td></tr>
+            <tr><td>Feiertag -Stunden-:</td><td><span class="sum-line-val" id="sum-f">0.00</span> h</td></tr>
+            <tr><td>Krank -Stunden-:</td><td><span class="sum-line-val" id="sum-k">0.00</span> h</td></tr>
+            <tr style="height:10px;"><td></td><td></td></tr>
+            <tr><td><b>Stunden insgesamt:</b></td><td><span class="sum-line-val" id="sum-total" style="font-size:15px;">0.00</span> h</td></tr>
+        </table>
         <div class="sig-output">
             <img id="pdf-sig-img" src="">
             <div class="sig-line">Unterschrift des Mitarbeiters</div>
@@ -124,7 +124,7 @@
 </div>
 
 <script>
-    let db = JSON.parse(localStorage.getItem('ac_elektro_final_v1')) || {};
+    let db = JSON.parse(localStorage.getItem('ac_elektro_final_v4')) || {};
     const canvas = document.getElementById("sig-pad");
     const pad = new SignaturePad(canvas);
 
@@ -167,11 +167,20 @@
         }
 
         const total = w + u + f + k;
-        document.getElementById('live-w').innerText = document.getElementById('sum-w').innerText = w.toFixed(2);
-        document.getElementById('live-u').innerText = document.getElementById('sum-u').innerText = u.toFixed(2);
-        document.getElementById('live-f').innerText = document.getElementById('sum-f').innerText = f.toFixed(2);
-        document.getElementById('live-k').innerText = document.getElementById('sum-k').innerText = k.toFixed(2);
-        document.getElementById('live-total').innerText = document.getElementById('sum-total').innerText = total.toFixed(2);
+        
+        // Update Live-UI
+        document.getElementById('live-w').innerText = w.toFixed(2);
+        document.getElementById('live-u').innerText = u.toFixed(2);
+        document.getElementById('live-f').innerText = f.toFixed(2);
+        document.getElementById('live-k').innerText = k.toFixed(2);
+        document.getElementById('live-total').innerText = total.toFixed(2);
+
+        // Update PDF-UI
+        document.getElementById('sum-w').innerText = w.toFixed(2);
+        document.getElementById('sum-u').innerText = u.toFixed(2);
+        document.getElementById('sum-f').innerText = f.toFixed(2);
+        document.getElementById('sum-k').innerText = k.toFixed(2);
+        document.getElementById('sum-total').innerText = total.toFixed(2);
     }
 
     function saveData() {
@@ -179,7 +188,6 @@
         if(!d) return;
         const [y, m, day] = d.split('-');
         const s = document.getElementById('in-start').value, e = document.getElementById('in-end').value;
-        const p = parseInt(document.getElementById('input-pause')) || 0; // Fixed from incorrect ID
         const pVal = parseInt(document.getElementById('in-pause').value) || 0;
         const t = document.getElementById('in-type').value;
         const c = document.getElementById('in-city').value;
@@ -191,12 +199,12 @@
         } else { hrs = 8.5; }
 
         db[`${y}-${m}-${parseInt(day)}`] = { s, e, p: pVal, h: hrs, c, t };
-        localStorage.setItem('ac_elektro_final_v1', JSON.stringify(db));
+        localStorage.setItem('ac_elektro_final_v4', JSON.stringify(db));
         updateUI();
         alert("Daten erfolgreich gespeichert!");
     }
 
-    function resetAll() { if(confirm("Möchten Sie wirklich alle Daten löschen?")) { localStorage.removeItem('ac_elektro_final_v1'); db={}; updateUI(); } }
+    function resetAll() { if(confirm("Möchten Sie wirklich alle Daten löschen?")) { localStorage.removeItem('ac_elektro_final_v4'); db={}; updateUI(); } }
 
     function exportPDF() {
         if(pad.isEmpty()) return alert("Bitte unterschreiben Sie zuerst!");
