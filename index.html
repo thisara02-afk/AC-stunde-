@@ -18,14 +18,11 @@
         .summary-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-top: 15px; padding: 12px; background: #e3f2fd; border-radius: 10px; border: 2px solid #2196f3; font-size: 13px; }
         .preview-container { width: 100%; max-width: 900px; margin-top: 15px; background: white; padding: 10px; border-radius: 12px; }
         .scroll-box { width: 100%; overflow-x: auto; border: 1px solid #eee; border-radius: 8px; height: 300px; }
+        
         table { width: 100%; border-collapse: collapse; min-width: 600px; }
-        th, td { border: 1px solid #eee; padding: 6px; text-align: center; font-size: 12px; }
+        th, td { border: 1px solid #eee; padding: 8px; text-align: center; font-size: 12px; }
         th { background: #f1f1f1; position: sticky; top: 0; }
         
-        .row-weekend { background-color: #f9f9f9; }
-        .row-filled { background-color: #e8f5e9; font-weight: bold; }
-        .row-spec { background-color: #fffde7 !important; }
-
         .sig-wrapper { border: 2px dashed #ccc; border-radius: 8px; margin-top: 10px; background: #fff; height: 120px; position: relative; }
         canvas { width: 100%; height: 100%; touch-action: none; }
         .btn-group { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 15px; }
@@ -34,14 +31,27 @@
         .btn-pdf { background: var(--blue); }
         .btn-reset { background: #95a5a6; grid-column: span 2; }
 
+        /* DRUCK-LAYOUT FIX */
         #print-area { display: none; }
         @media print {
-            @page { size: A4; margin: 10mm; }
+            @page { size: A4; margin: 15mm; }
             body * { visibility: hidden; }
             #print-area, #print-area * { visibility: visible; }
-            #print-area { display: block; position: absolute; left: 0; top: 0; width: 100%; background: white; }
-            table { width: 100%; border-collapse: collapse; border: 1px solid black; }
-            th, td { border: 1px solid black !important; padding: 3px !important; font-size: 9px !important; }
+            #print-area { 
+                display: block !important; 
+                position: absolute; 
+                left: 0; 
+                top: 0; 
+                width: 100%; 
+                background: white; 
+                color: black;
+            }
+            .no-print { display: none !important; }
+            table { width: 100%; border: 1px solid black; table-layout: fixed; }
+            th, td { border: 1px solid black !important; padding: 4px !important; font-size: 10px !important; overflow: hidden; }
+            th:nth-child(1) { width: 15%; }
+            th:nth-child(2), th:nth-child(3), th:nth-child(4), th:nth-child(5), th:nth-child(6) { width: 10%; }
+            th:nth-child(7) { width: 35%; }
         }
     </style>
 </head>
@@ -69,7 +79,7 @@
 
     <div class="summary-grid">
         <div>Arbeit (Netto): <b id="v-w">0.00</b> h</div>
-        <div style="color:red;">Überstunden (Gesamt): <b id="v-ot">0.00</b> h</div>
+        <div style="color:red;">Überstunden: <b id="v-ot">0.00</b> h</div>
         <div>Urlaub: <b id="v-u">0.00</b> h</div>
         <div>Krank: <b id="v-k">0.00</b> h</div>
         <div>Feiertag: <b id="v-f">0.00</b> h</div>
@@ -89,33 +99,47 @@
 </div>
 
 <div class="preview-container no-print">
-    <div class="scroll-box"><table>
-        <thead><tr><th>Tag</th><th>Von</th><th>Bis</th><th>Netto</th><th>Überst.</th><th>Ort</th></tr></thead>
-        <tbody id="live-body"></tbody>
-    </table></div>
+    <p style="font-size: 12px; color: #666; margin-bottom: 5px;">Vorschau Monat:</p>
+    <div class="scroll-box">
+        <table>
+            <thead>
+                <tr><th>Tag</th><th>Von</th><th>Bis</th><th>Netto</th><th>Überst.</th><th>Ort</th></tr>
+            </thead>
+            <tbody id="live-body"></tbody>
+        </table>
+    </div>
 </div>
 
 <div id="print-area">
-    <h3 style="margin:0; border-bottom: 2px solid black;">STUNDENNACHWEIS - AC ELEKTRO</h3>
-    <div style="display:flex; justify-content:space-between; margin: 10px 0; font-size: 11px;">
+    <h2 style="margin:0; border-bottom: 2px solid black; padding-bottom: 5px;">STUNDENNACHWEIS - AC ELEKTRO</h2>
+    <div style="display:flex; justify-content:space-between; margin: 15px 0; font-size: 12px;">
         <span>Mitarbeiter: <b id="p-name"></b></span>
         <span>Monat: <b id="p-month"></b></span>
     </div>
     <table>
         <thead>
-            <tr><th>Tag</th><th>Beginn</th><th>Ende</th><th>Pause</th><th>Netto</th><th>Überst.</th><th>Ort</th></tr>
+            <tr>
+                <th>Tag</th>
+                <th>Beginn</th>
+                <th>Ende</th>
+                <th>Pause</th>
+                <th>Netto</th>
+                <th>Überst.</th>
+                <th>Einsatzort / Bemerkung</th>
+            </tr>
         </thead>
         <tbody id="p-body"></tbody>
     </table>
-    <div style="display:flex; justify-content:space-between; margin-top:15px; font-size:10px;">
-        <div style="line-height:1.4;">
+    
+    <div style="display:flex; justify-content:space-between; margin-top:20px;">
+        <div style="font-size:11px; line-height:1.6;">
             Arbeit: <b id="ps-w">0.00</b> h | Überstunden: <b id="ps-ot">0.00</b> h<br>
             Urlaub: <b id="ps-u">0.00</b> h | Krank: <b id="ps-k">0.00</b> h | Feiertag: <b id="ps-f">0.00</b> h<br>
-            <span style="font-size:12px;"><b>Monats-Gesamtstunden: <span id="ps-total">0.00</span> h</b></span>
+            <span style="font-size:14px;"><b>Gesamtstunden: <span id="ps-total">0.00</span> h</b></span>
         </div>
-        <div style="text-align:center; width:180px;">
-            <img id="p-sig" style="max-height:50px; border-bottom:1px solid black; min-width:120px;"><br>
-            Unterschrift
+        <div style="text-align:center; width:200px;">
+            <img id="p-sig" style="max-height:60px; border-bottom:1px solid black; width:100%;"><br>
+            <span style="font-size:10px;">Unterschrift Mitarbeiter</span>
         </div>
     </div>
 </div>
@@ -132,12 +156,20 @@
         canvas.height = canvas.offsetHeight * ratio;
         canvas.getContext("2d").scale(ratio, ratio);
     }
-    window.onload = () => { resizeCanvas(); updateUI(); };
+    
+    window.onload = () => { 
+        if(!document.getElementById('in-date').value) {
+            document.getElementById('in-date').value = new Date().toISOString().split('T')[0];
+        }
+        resizeCanvas(); 
+        updateUI(); 
+    };
 
     function updateUI() {
-        const dVal = document.getElementById('in-date').value || new Date().toISOString().split('T')[0];
+        const dVal = document.getElementById('in-date').value;
         const [y, m] = dVal.split('-');
         const lastDay = new Date(y, m, 0).getDate();
+        
         document.getElementById('p-name').innerText = document.getElementById('in-name').value || "________________";
         document.getElementById('p-month').innerText = `${m} / ${y}`;
 
@@ -150,38 +182,44 @@
             const wd = tage[dt.getDay()];
             const row = db[`${y}-${m}-${i}`] || {};
             
-            let cls = (dt.getDay() === 0 || dt.getDay() === 6) ? "row-weekend" : "";
-            if(row.h || row.ot) cls = (row.t === 'work') ? "row-filled" : "row-spec";
-
-            const rowHtml = `<tr>
+            // Vorschau (App)
+            lb.innerHTML += `<tr>
                 <td>${i < 10 ? '0'+i : i}. ${wd}</td>
                 <td>${row.s || '-'}</td><td>${row.e || '-'}</td>
                 <td>${row.h ? row.h.toFixed(2) : '0.00'}</td>
-                <td style="color:red; font-weight:bold;">${row.ot > 0 ? row.ot.toFixed(2) : ''}</td>
-                <td style="text-align:left; font-size:10px;">${row.c || ''}</td>
+                <td style="color:red;">${row.ot > 0 ? row.ot.toFixed(2) : ''}</td>
+                <td>${row.c || ''}</td>
             </tr>`;
-            lb.innerHTML += rowHtml; pb.innerHTML += rowHtml;
 
-            // Berechnung für Zusammenfassung
-            if(row.t === 'work') {
-                totalNetto += (row.h || 0);
-                totalOT += (row.ot || 0); // Zählt jetzt ALLE Überstunden (Woche + Wochenende)
-            } else if(row.t === 'urlaub') u += (row.h || 0);
+            // PDF-Tabelle (Druckansicht) - ALLE 7 SPALTEN GEFÜLLT
+            pb.innerHTML += `<tr>
+                <td>${i < 10 ? '0'+i : i}. ${wd}</td>
+                <td>${row.s || '-'}</td>
+                <td>${row.e || '-'}</td>
+                <td>${row.p || '-'}</td>
+                <td>${row.h ? row.h.toFixed(2) : '0.00'}</td>
+                <td>${row.ot > 0 ? row.ot.toFixed(2) : ''}</td>
+                <td style="text-align:left;">${row.c || ''}</td>
+            </tr>`;
+
+            if(row.t === 'work') { totalNetto += (row.h || 0); totalOT += (row.ot || 0); }
+            else if(row.t === 'urlaub') u += (row.h || 0);
             else if(row.t === 'krank') k += (row.h || 0);
             else if(row.t === 'feiertag') f += (row.h || 0);
         }
         
+        const sum = totalNetto + totalOT + u + k + f;
         document.getElementById('v-w').innerText = document.getElementById('ps-w').innerText = totalNetto.toFixed(2);
         document.getElementById('v-ot').innerText = document.getElementById('ps-ot').innerText = totalOT.toFixed(2);
         document.getElementById('v-u').innerText = document.getElementById('ps-u').innerText = u.toFixed(2);
         document.getElementById('v-k').innerText = document.getElementById('ps-k').innerText = k.toFixed(2);
         document.getElementById('v-f').innerText = document.getElementById('ps-f').innerText = f.toFixed(2);
-        document.getElementById('v-total').innerText = document.getElementById('ps-total').innerText = (totalNetto + totalOT + u + k + f).toFixed(2);
+        document.getElementById('v-total').innerText = document.getElementById('ps-total').innerText = sum.toFixed(2);
     }
 
     function saveData() {
         const dStr = document.getElementById('in-date').value;
-        if(!dStr) return alert("Bitte Datum wählen!");
+        if(!dStr) return alert("Datum fehlt!");
         const [y, m, day] = dStr.split('-');
         const dow = new Date(dStr).getDay();
         const s = document.getElementById('in-start').value, e = document.getElementById('in-end').value;
@@ -191,16 +229,12 @@
         if(t === 'work') {
             const [sh, sm] = s.split(':').map(Number), [eh, em] = e.split(':').map(Number);
             let diff = ((eh * 60 + em) - (sh * 60 + sm) - p) / 60;
-            
-            if(dow === 0 || dow === 6) { 
-                h = 0; over = diff; // Alles Überstunden am Samstag/Sonntag
-            } else {
+            if(dow === 0 || dow === 6) { h = 0; over = diff; } 
+            else {
                 let limit = (dow === 5) ? 5.0 : 8.5; 
                 if(diff > limit) { h = limit; over = diff - limit; } else { h = diff; }
             }
-        } else { 
-            h = (dow === 0 || dow === 6) ? 0 : (dow === 5 ? 5.0 : 8.5);
-        }
+        } else { h = (dow === 0 || dow === 6) ? 0 : (dow === 5 ? 5.0 : 8.5); }
 
         db[`${y}-${m}-${parseInt(day)}`] = { s, e, p, h, ot: over, c, t };
         localStorage.setItem('ace_v43_db', JSON.stringify(db));
@@ -209,12 +243,12 @@
     }
 
     function printPDF() {
-        if(pad.isEmpty()) return alert("Bitte unterschreiben!");
+        if(pad.isEmpty()) return alert("Bitte erst unterschreiben!");
         document.getElementById('p-sig').src = pad.toDataURL();
         setTimeout(() => { window.print(); }, 500);
     }
 
-    function resetAll() { if(confirm("Gesamten Monat löschen?")) { localStorage.clear(); location.reload(); } }
+    function resetAll() { if(confirm("Monat löschen?")) { localStorage.clear(); location.reload(); } }
 </script>
 </body>
 </html>
